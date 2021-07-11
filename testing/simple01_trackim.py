@@ -1,4 +1,5 @@
-#=============================== simple01 ================================
+#!/usr/bin/python3
+#=========================== simple01_trackim ============================
 #
 # @brief    Code to test out the simple perceiver for a fairly
 #           contrived scenario.
@@ -10,28 +11,27 @@
 #
 # The code below
 #
-# > simple01
+# > simple01_trackim
 # 
 # runs the script.  
 #
-#=============================== simple01 ================================
+#=========================== simple01_trackim ============================
 
 # 
-# @file     trackTri01.m
+# @file     simple01_trackim.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
-# @date     2020/11/10 [created]
+# @date     2021/07/03 [created]
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
 # @quit
-#=============================== simple01 ================================
+#=========================== simple01_trackim ============================
 
 
 #==[0] Create environment. Import necessary libraries/packages.
-
 
 
 
@@ -60,3 +60,5 @@
 
 
 
+#
+#=========================== simple01_trackim ============================
