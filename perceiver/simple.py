@@ -1,25 +1,63 @@
 #============================ perceiver.simple ===========================
 #
 #
-# @brief    A simple and general interface class for segmentation-based
-#           tracking from an image stream. 
+# @brief    A simple and general interface class for hierachically detection and tracking
+#           based on RGB-D data
 #
+# The interface that first detection the target from RGB-D data and then
+# find the tracker points.
 #
-# The interface first performs detection (binary segmentation) of the
-# target, then establishes a track point from the segmentation.
+# Currently, the detection process is also assumed to be hierachical:
+# RGB detector -> RGB post-process -> D(depth) detector -> D post-process
+# The default methods of all above steps are doing nothing
 #
 # Dependencies:
 #   [function]setIfMissing   Yiye's generalized version
-# 
+#
+#
+#
+# @file     simple.m
+#
+# @author   Yiye Chen,       yychen2019@gatech.edu
+#           Yunzhi Lin,      yunzhi.lin@gatech.edu
+# @date     2021/04/05  [created]
+#           2021/07/11  [modified]
+#!NOTE:
+#!  set indent to 2 spaces.
+#!  do not indent function code.
+#!  set tab to 4 spaces with conversion to spaces.
+#
 #============================ perceiver.simple ===========================
 
 # Import any necessary libraries/packages.
 
+import os
+import perceiver
+import matplotlib.pyplot as plt
+import time
+import numpy as np
+
+class State(object):
+  def __init__(self, g=None, tPts=None, gOB=None,
+               tMeas=None, haveObs=None, haveState=None):
+    self.g = g
+    self.tPts = tPts
+    self.gOB = gOB
+    self.tMeas = tMeas
+    self.haveObs = haveObs
+    self.haveState = haveState
+
+class Info(object):
+  def __init__(self, name=None, version=None, data=None, time=None, params=None):
+    self.name = name
+    self.version = version
+    self.data = data
+    self.time = time
+    self.params = params
 
 
 # Class description
-
-class simple:
+class simple(object):
 
   #=============================== simple ==============================
   #
@@ -30,21 +68,26 @@ class simple:
   # @param[in] trackFilter  The track point filtering approach.
   # @param[in] theParams    Option set of paramters.
   #
-  def __init__(self, theDetector, theTracker, trackFilter, theParms)
+  def __init__(self, theDetector, theTracker, trackFilter, theParams):
 
     self.detector = theDetector
     self.tracker  = theTracker
     self.filter   = trackFilter
 
-    self.parms    = perceiver.simple.defaultParms()
+    self.params    = perceiver.simple.defaultParams()
 
-    self.haveRun   = false
-    self.haveObs   = false
-    this.haveState = false
+    # states
+    self.tPts = None
+    self.haveRun   = False #< Was an observation measured? - e.g. detect a tracker
+    self.haveObs   = False #< Do we have a state estimate? - e.g. human activity
+    self.haveState = False #< Has not been run before.
 
-    self.I = MAKE_EMPTY_IMAGE
+    # data storage
+    self.I = None
 
-    self.tMeas = EMPTY
+    # results. e.g., tpt of the trackpointers class
+    self.tMeas = None #< The last measured track state of the target.
+
     # Process the run-time parameters.
     # Code missing.
 
@@ -56,11 +99,10 @@ class simple:
   # @param[in]  fname   Name of the field to set.
   # @param[in]  fval    Value to set.
   # 
-  def set(self, fname, fval)
+  def set(self, fname, fval):
 
-    switch fname
-      case 'state'
-        this.setState(fval);
+    if fname == 'state':
+        self.setState(fval)
 
 
   #================================ get ================================
@@ -70,16 +112,16 @@ class simple:
   # @param[in]  fname   Name of the field to set.
   # @param[out] fval    Value returned.
   #
-  def fval = get(self, fname)
+  def get(self, fname):
 
-    switch fname
-      case 'state'
-        fval = self.getState(fval);
-      case 'trackParms','parms'
-        fval = self.parms;
-      otherwise
-        fval = [];
-  
+    if fname == 'state':
+      fval = self.getState()
+    elif fname == 'trackParams'or fname == 'params':
+      fval = self.params
+    else:
+      fval = []
+
+    return fval
   
   #============================== getState %=============================
   #
@@ -87,14 +129,15 @@ class simple:
   # 
   # @param  cstate  The current state structure.
   #
-  def cstate = getState(self)
+  def getState(self):
 
-    #   cstate.g     = this.gFilter.getState();
-    cstate.tMeas = this.tMeas;
-    #   cstate.gOB   = this.gOB;
-    cstate.haveObs = this.haveObs;
-    cstate.haveState = this.haveState;
+    # @todo Not used yet
+    # cstate.g = self.gFilter.getState()
+    # cstate.gOB   = self.gOB;
 
+    cstate = State(tMeas = self.tMeas, haveObs = self.haveObs,haveState = self.haveState)
+
+    return cstate
 
   #============================== setState =============================
   #
@@ -102,25 +145,26 @@ class simple:
   #
   # @param[in]  nstate  The new state structure.
   #
-  def setState(self, nstate)
+  def setState(self, nstate):
 
-  # gFilter.setState(nstate.g); NEED TO RECONSIDER HOW DONE. 
-  # FOR NOW USING A PASS THROUGH BUT COMMENTING OUT.
-  # self.tracker.setState(nstate);
+    # @todo
+    # gFilter.setState(nstate.g) NEED TO RECONSIDER HOW DONE.
+    # FOR NOW USING A PASS THROUGH BUT COMMENTING OUT.
+    # self.tracker.setState(nstate)
 
-  # EQUIVALENT TO isfield in python?
-  if (isfield(nstate,'tPts'))   # Permit empty: simply won't plot.
-    this.tPts = nstate.tPts;
+    if nstate.tPts:   # Permit empty: simply won't plot.
+      self.tPts = nstate.tPts
 
-  # Yiye had removed gOB. Not sure why. Bring back in when the
-  # Lie group class package/namespace/library is up to date.
-  #
-  #if (isfield(nstate,'gOB') && ~isempty(nstate.gOB))
-  #  this.gOB = nstate.gOB;
-  #end
+    # @todo
+    # Yiye had removed gOB. Not sure why. Bring back in when the
+    # Lie group class package/namespace/library is up to date.
+    #
+    #if (isfield(nstate,'gOB') && ~isempty(nstate.gOB))
+    #  this.gOB = nstate.gOB
+    #end
 
-  this.haveObs   = nstate.haveObs;
-  this.haveState = nstate.haveState;
+    self.haveObs   = nstate.haveObs
+    self.haveState = nstate.haveState
 
   
   #============================= emptyState ============================
@@ -129,52 +173,60 @@ class simple:
   #
   # @param[out] estate  The state structure with no content.
   #
-  def estate = emptyState(self)
+  def emptyState(self):
 
-  estate = struct('g',[],'tPts',[],'gOB',[],'haveObs',false,'haveState',false);
+    estate = State(haveObs=False, haveState=False)
 
-  
+    return estate
+
   #============================== process ==============================
   #
   # @brief  Run the tracking pipeline for one step/image measurement.
   #
-  def process(self, I_rgb, I_D)
+  def process(self, I_rgb, I_D):
 
-  self.predict();
-  self.measure(I_rgb, I_D);
-  self.correct();
-  self.adapt();
+    self.predict()
+    self.measure(I_rgb, I_D)
+    self.correct()
+    self.adapt()
 
   #============================ displayState ===========================
   #
-  def displayState(self, dState)
+  def displayState(self, dState):
 
-    if (nargin == 1) || isempty(dState)
-      dState = this.getState();
+    if not dState:
+      dState = self.getState()
   
-    this.tracker.displayState();
-  
-    washeld = ishold;
-    hold on;
-  
-    if isfield(this.parms,'display')
-      if isfield(this.trackParms,'dispargs')
-        this.parms.display(dState, this.parms.dispargs{:});
-      else
-        this.parms.display(dState);
-  
-    if (~washeld)
-      hold off;
+    self.tracker.displayState()
+
+    # # # @todo what is this?
+    # washeld = ishold
+    # hold on
+
+    if self.params.display:
+      if self.params.dispargs:
+        self.params.display(dState, self.params.dispargs)
+      else:
+        self.params.display(dState)
+
+    # @todo what is this?
+    # if not washeld:
+    #   hold off
   
 
   #============================ displayDebug ===========================
   #
-  def displayDebug(fh, dbState)
+  def displayDebug(fh, dbState):
 
-    if (~isempty(fh))
-      figure(fh);
+    # @todo what is fh?
+    # if (~isempty(fh))
+    #   figure(fh);
+    # end
+
+    if fh:
+      fh = plt.figure()
   
-    # Does nothing for now.
+    # Do nothing for now.
 
 
   #================================ info ===============================
@@ -185,32 +237,33 @@ class simple:
   #
   # @param[out] tinfo   The tracking configuration information structure.
   #
-  function tinfo =  info(self)
+  def info(self):
 
-    tinfo.name    = mfilename;
-    tinfo.version = '1.0.0';
-    tinfo.data  = datestr(now,'yyyy/mm/dd');
-    tinfo.time  = datestr(now,'HH:MM:SS');
-    tinfo.parms = self.parms;
+    tinfo = Info(name=os.path.basename(__file__),
+         version='1.0.0',
+         data=time.strftime('%Y/%m/%d'),
+         time=time.strftime('%H:%M:%s'),
+         params=self.params)
+
+    return tinfo
 
   #================================ free ===============================
   #
   # @brief      Destructor.  Just in case other stuff needs to be done.
   #
-  function free(self)
+  def free(self):
+    # Not implemented yet
+    pass
 
-
-# end % methods - Public 
-
-# methods % @todo Eventually make these member functions protected and not public.
-
+  # @todo Eventually make these member functions protected and not public.
 
   #============================== predict ==============================
   #
   # @brief  Predict next measurement, if applicable.
   #
-  function predict(self)
-    
+  def predict(self):
+    # Not implemented yet
+    pass
   # NOTE: this predict is designed to be any separate predictor other
   #       than that in the detector and tracker.  the component
   #       detector/tracker's predict (whole process) is executed in the
@@ -222,13 +275,12 @@ class simple:
   #         trackPointer output.
   #
   #
-  def measure(self, I)
+  def measure(self, I):
 
     # TODO: measure function is done. the tracker result is stored in the
     # this.tMeas Now finish the return state function and then test the
     # demo_simple
-  
-  
+
     # NOTE TO YUNZHI: DO NOT FOLLOW THE DESIGN PATTERN OF YIYE.
     # THE RGB-D DATA IS A UNIT AND GETS PROCESSED AS SUCH.
     # ANY NECESSARY DECOUPLED DETECTION AND POST-PROCESSING SHOULD RESIDE
@@ -244,18 +296,23 @@ class simple:
     #! Run measurement/processing.
     
     # Image-based detection and post processing.
-    self.detector.process(I);
+    self.detector.process(I)
   
     fgLayer = self.detector.getForeground()
   
-    if (~isempty(self.processor)
+    if self.processor:
       fgLayer = self.processor.process(fgLayer)
     
     # Tracking on binary segmentation mask.
-    self.tracker.process(fgMask);
-    tstate = self.tracker.getstate();
+    self.tracker.process(fgLayer)
+    tstate = self.tracker.getstate()
   
-    self.tMeas = tstate.x;
+    if tstate.g:
+     self.tMeas = tstate.g
+    elif tstate.tpt:
+     self.tMeas = tstate.tpt
+
+    # @todo
     # MAYBE SHOULD JUST SET TO tstate IN CASE IT HAS EXTRA INFORMATION
     # THEN THIS CLASS JUST GRABS THE x FIELD. LET'S THE FIELD TAKE CARE
     # OF ITS OWN FUNCTIONALITY?
@@ -264,45 +321,38 @@ class simple:
     # THEN WE FIX IT.  WILL REQUIRE A Euclidean CLASS OR A
     # Lie.group.Euclidean INSTANCE (which is really just a vector).
     # SHOULD BE QUICK TO CODE UP AT ITS MOST BASIC.
-  
-    #if (isfield(tstate,'g'))
-    #  self.tMeas = tstate.g;
-    #elseif (isfield(tstate,'tpt'))
-    #  self.tMeas = tstate.tpt;
-    #end
-  
-    # self.gFilter.correct(this.tMeas); # DO WE NEED A FILTER? WHY NOT IN TRACKPOINTER?
+
+    # @todo
+    # self.gFilter.correct(this.tMeas) # DO WE NEED A FILTER? WHY NOT IN TRACKPOINTER?
      
     # has observation flag
-    self.haveObs = ~any(isnan(this.tMeas), 'all');
-    # OR IS IT: self.haveObs = ~any(isnan(this.tMeas.x), 'all');
-  
+    self.haveObs = not any(np.isnan(self.tMeas))
 
   #============================== correct ==============================
   #
   # @brief  Correct the estimated state based on measured and predicted.
   #
-  def correct(self)
-
-  end
+  def correct(self):
+    # Not implemented yet
+    pass
 
   #=============================== adapt ===============================
   #
   # @brief  Adapt parts of the process based on measurements and
   # corrections.
   #
-  def adapt(self)
-
-  end
-
+  def adapt(self):
+    # Not implemented yet
+    pass
 
   #=========================== displaySimple ===========================
   #
   # @brief      Basic rigid body display routine. Plots SE(2) frame.
   #
   @staticmethod
-  def displaySimple(cstate, dispArgs)
-
+  def displaySimple(cstate, dispArgs):
+    # Not implemented yet
+    pass
 
   #============================ displayFull ============================
   #
@@ -310,33 +360,23 @@ class simple:
   #             marker positions.
   #
   @staticmethod
-  def displayFull(cstate, dispArgs)
+  def displayFull(cstate, dispArgs):
 
-    wasHeld = ishold;
-  
-    gCurr = cstate.gOB * cstate.g;
-  
-    if (nargin < 2)
-      dispArgs = [];
-    end
-  
-    hold on;
-  
-    if isfield(dispArgs,'state')
-      gCurr.plot(dispArgs.state{:});
-    else
-      gCurr.plot();
-  
-    if (isfield(dispArgs,'plotAll') && dispArgs.plotAll)
-      plot(cstate.tPts(1,:), cstate.tPts(2,:), 'm+');
-  
-    if (isfield(dispArgs,'noTicks') && dispArgs.noTicks)
-      set(gca,'YTickLabel',[],'XTickLabel',[]);
-  
-    drawnow;
-    if (~wasHeld)
-      hold off;
-  
+    gCurr = cstate.gOB * cstate.g
 
-%
-%============================ simple ============================
+    if dispArgs.state:
+      gCurr.plot(dispArgs.state)
+    else:
+      gCurr.plot()
+  
+    if dispArgs.plotAll and dispArgs.plotAll:
+      plt.plot(cstate.tPts[0,:], cstate.tPts[1,:])
+  
+    if dispArgs.noTicks and dispArgs.noTicks:
+      plt.tick_params(labelleft=False, labelbottom=False)
+
+    plt.show()
+    plt.pause(0.0001)
+
+#
+#============================ simple ============================
