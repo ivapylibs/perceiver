@@ -71,10 +71,14 @@ class simple(object):
   def __init__(self, theDetector, theTracker, trackFilter, theParams):
 
     self.detector = theDetector
-    self.tracker  = theTracker
-    self.filter   = trackFilter
+    self.tracker = theTracker
+    self.filter = trackFilter
 
-    self.params    = perceiver.simple.defaultParams()
+    # @todo
+    # Not implemented yet
+    # self.params = perceiver.simple.defaultParams()
+
+    self.params = theParams
 
     # states
     self.tPts = None
@@ -135,7 +139,7 @@ class simple(object):
     # cstate.g = self.gFilter.getState()
     # cstate.gOB   = self.gOB;
 
-    cstate = State(tMeas = self.tMeas, haveObs = self.haveObs,haveState = self.haveState)
+    cstate = State(tMeas = self.tMeas, haveObs = self.haveObs, haveState = self.haveState)
 
     return cstate
 
@@ -183,10 +187,10 @@ class simple(object):
   #
   # @brief  Run the tracking pipeline for one step/image measurement.
   #
-  def process(self, I_rgb, I_D):
+  def process(self, I):
 
     self.predict()
-    self.measure(I_rgb, I_D)
+    self.measure(I)
     self.correct()
     self.adapt()
 
@@ -199,7 +203,7 @@ class simple(object):
   
     self.tracker.displayState()
 
-    # # # @todo what is this?
+    # # # @todo
     # washeld = ishold
     # hold on
 
@@ -209,7 +213,7 @@ class simple(object):
       else:
         self.params.display(dState)
 
-    # @todo what is this?
+    # @todo
     # if not washeld:
     #   hold off
   
@@ -218,14 +222,14 @@ class simple(object):
   #
   def displayDebug(fh, dbState):
 
-    # @todo what is fh?
+    # @todo
+    # Not sure how to translate
     # if (~isempty(fh))
     #   figure(fh);
     # end
 
-    if fh:
-      fh = plt.figure()
-  
+    pass
+
     # Do nothing for now.
 
 
@@ -294,22 +298,22 @@ class simple(object):
     # OF THE INTERFACE.
   
     #! Run measurement/processing.
-    
+
     # Image-based detection and post processing.
     self.detector.process(I)
-  
-    fgLayer = self.detector.getForeground()
-  
-    if self.processor:
-      fgLayer = self.processor.process(fgLayer)
-    
+
+    # # @todo Not implemented yet
+    # fgLayer = self.detector.getForeground()
+
+    # Use Ip instead for now
+    fgLayer = self.detector.Ip
+
     # Tracking on binary segmentation mask.
     self.tracker.process(fgLayer)
     tstate = self.tracker.getstate()
-  
-    if tstate.g:
+    if hasattr(tstate, 'g') and tstate.g is not None:
      self.tMeas = tstate.g
-    elif tstate.tpt:
+    elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
      self.tMeas = tstate.tpt
 
     # @todo
@@ -362,6 +366,9 @@ class simple(object):
   @staticmethod
   def displayFull(cstate, dispArgs):
 
+    # @todo
+    # Not sure what is gOB or h?
+    # This function has not been tested yet
     gCurr = cstate.gOB * cstate.g
 
     if dispArgs.state:
@@ -376,7 +383,7 @@ class simple(object):
       plt.tick_params(labelleft=False, labelbottom=False)
 
     plt.show()
-    plt.pause(0.0001)
+    plt.pause(0.1)
 
 #
 #============================ simple ============================
