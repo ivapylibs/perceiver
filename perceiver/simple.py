@@ -367,7 +367,7 @@ class simple(object):
   def displayFull(cstate, dispArgs):
 
     # @todo
-    # Not sure what is gOB or h?
+    # Not sure what is gOB or g?
     # This function has not been tested yet
     gCurr = cstate.gOB * cstate.g
 
