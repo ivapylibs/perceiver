@@ -32,10 +32,11 @@
 # Import any necessary libraries/packages.
 
 import os
-import perceiver
 import matplotlib.pyplot as plt
 import time
 import numpy as np
+
+import perceiver
 
 class State(object):
   def __init__(self, g=None, tPts=None, gOB=None,
@@ -55,6 +56,10 @@ class Info(object):
     self.time = time
     self.params = params
 
+class Params(object):
+  def __init__(self, display=None, dispargs=None):
+    self.display = display
+    self.version = dispargs
 
 # Class description
 class simple(object):
@@ -74,11 +79,12 @@ class simple(object):
     self.tracker = theTracker
     self.filter = trackFilter
 
-    # @todo
-    # Not implemented yet
-    # self.params = perceiver.simple.defaultParams()
-
-    self.params = theParams
+    if theParams:
+      self.params = theParams
+    else:
+      # @todo
+      # Not finished yet
+      self.params = simple.defaultParams()
 
     # states
     self.tPts = None
@@ -228,10 +234,9 @@ class simple(object):
     #   figure(fh);
     # end
 
-    pass
-
     # Do nothing for now.
 
+    pass
 
   #================================ info ===============================
   #
@@ -246,7 +251,7 @@ class simple(object):
     tinfo = Info(name=os.path.basename(__file__),
          version='1.0.0',
          data=time.strftime('%Y/%m/%d'),
-         time=time.strftime('%H:%M:%s'),
+         time=time.strftime('%H:%M:%S'),
          params=self.params)
 
     return tinfo
@@ -329,7 +334,7 @@ class simple(object):
     # @todo
     # self.gFilter.correct(this.tMeas) # DO WE NEED A FILTER? WHY NOT IN TRACKPOINTER?
      
-    # has observation flag
+    # Set observation flag
     self.haveObs = not any(np.isnan(self.tMeas))
 
   #============================== correct ==============================
@@ -348,6 +353,17 @@ class simple(object):
   def adapt(self):
     # Not implemented yet
     pass
+
+  #=========================== defaultParams ===========================
+  #
+  # @brief      Set up default params
+  #
+  @staticmethod
+  def defaultParams():
+    # Not finished yet
+    params = Params()
+
+    return params
 
   #=========================== displaySimple ===========================
   #
