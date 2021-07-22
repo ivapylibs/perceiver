@@ -335,7 +335,7 @@ class simple(object):
     # self.gFilter.correct(this.tMeas) # DO WE NEED A FILTER? WHY NOT IN TRACKPOINTER?
      
     # Set observation flag
-    self.haveObs = not any(np.isnan(self.tMeas))
+    self.haveObs = not np.isnan(self.tMeas).any()
 
   #============================== correct ==============================
   #
