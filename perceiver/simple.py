@@ -35,31 +35,31 @@ import os
 import matplotlib.pyplot as plt
 import time
 import numpy as np
+from dataclasses import dataclass
 
-import perceiver
+from Lie.group.SE2.Homog import Homog
 
-class State(object):
-  def __init__(self, g=None, tPts=None, gOB=None,
-               tMeas=None, haveObs=None, haveState=None):
-    self.g = g
-    self.tPts = tPts
-    self.gOB = gOB
-    self.tMeas = tMeas
-    self.haveObs = haveObs
-    self.haveState = haveState
+@dataclass
+class State:
+  g: Homog
+  tPts: np.ndarray
+  gOB: Homog
+  tMeas: any
+  haveObs: bool = False
+  haveState:  bool = False
 
-class Info(object):
-  def __init__(self, name=None, version=None, data=None, time=None, params=None):
-    self.name = name
-    self.version = version
-    self.data = data
-    self.time = time
-    self.params = params
+@dataclass
+class Params:
+  display: any = None
+  version: any = None
 
-class Params(object):
-  def __init__(self, display=None, dispargs=None):
-    self.display = display
-    self.version = dispargs
+@dataclass
+class Info:
+  name: str
+  version: str
+  data: str
+  time: str
+  params: Params
 
 # Class description
 class simple(object):
@@ -315,7 +315,7 @@ class simple(object):
 
     # Tracking on binary segmentation mask.
     self.tracker.process(fgLayer)
-    tstate = self.tracker.getstate()
+    tstate = self.tracker.getState()
     if hasattr(tstate, 'g') and tstate.g is not None:
      self.tMeas = tstate.g
     elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
@@ -360,6 +360,7 @@ class simple(object):
   #
   @staticmethod
   def defaultParams():
+    # @todo
     # Not finished yet
     params = Params()
 
@@ -383,7 +384,6 @@ class simple(object):
   def displayFull(cstate, dispArgs):
 
     # @todo
-    # Not sure what is gOB or g?
     # This function has not been tested yet
     gCurr = cstate.gOB * cstate.g
 
