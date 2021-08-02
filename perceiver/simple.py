@@ -41,10 +41,10 @@ from Lie.group.SE2.Homog import Homog
 
 @dataclass
 class State:
-  g: Homog
-  tPts: np.ndarray
-  gOB: Homog
   tMeas: any
+  g: Homog = None
+  tPts: np.ndarray = np.array([])
+  gOB: Homog = None
   haveObs: bool = False
   haveState:  bool = False
 
@@ -133,7 +133,7 @@ class simple(object):
 
     return fval
   
-  #============================== getState %=============================
+  #============================== getState =============================
   #
   # @brief      Returns the current state structure.
   # 
@@ -141,7 +141,8 @@ class simple(object):
   #
   def getState(self):
 
-    # @todo Not used yet
+    # @todo
+    # Not used yet
     # cstate.g = self.gFilter.getState()
     # cstate.gOB   = self.gOB;
 
@@ -202,16 +203,12 @@ class simple(object):
 
   #============================ displayState ===========================
   #
-  def displayState(self, dState):
+  def displayState(self, dState=None):
 
-    if not dState:
+    if not isinstance(dState,State):
       dState = self.getState()
   
     self.tracker.displayState()
-
-    # # # @todo
-    # washeld = ishold
-    # hold on
 
     if self.params.display:
       if self.params.dispargs:
@@ -219,23 +216,12 @@ class simple(object):
       else:
         self.params.display(dState)
 
-    # @todo
-    # if not washeld:
-    #   hold off
   
 
   #============================ displayDebug ===========================
   #
-  def displayDebug(fh, dbState):
-
-    # @todo
-    # Not sure how to translate
-    # if (~isempty(fh))
-    #   figure(fh);
-    # end
-
-    # Do nothing for now.
-
+  def displayDebug(self, fh, dbState):
+    # Not implemented yet
     pass
 
   #================================ info ===============================
@@ -286,10 +272,7 @@ class simple(object):
   #
   def measure(self, I):
 
-    # TODO: measure function is done. the tracker result is stored in the
-    # this.tMeas Now finish the return state function and then test the
-    # demo_simple
-
+    # @note
     # NOTE TO YUNZHI: DO NOT FOLLOW THE DESIGN PATTERN OF YIYE.
     # THE RGB-D DATA IS A UNIT AND GETS PROCESSED AS SUCH.
     # ANY NECESSARY DECOUPLED DETECTION AND POST-PROCESSING SHOULD RESIDE
@@ -311,11 +294,13 @@ class simple(object):
     # fgLayer = self.detector.getForeground()
 
     # Use Ip instead for now
-    fgLayer = self.detector.Ip
+    detState = self.detector.getState()
+    fgLayer = detState.x
 
     # Tracking on binary segmentation mask.
     self.tracker.process(fgLayer)
     tstate = self.tracker.getState()
+
     if hasattr(tstate, 'g') and tstate.g is not None:
      self.tMeas = tstate.g
     elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
@@ -360,8 +345,7 @@ class simple(object):
   #
   @staticmethod
   def defaultParams():
-    # @todo
-    # Not finished yet
+
     params = Params()
 
     return params
@@ -380,11 +364,12 @@ class simple(object):
   # @brief      Fill rigid body display routine. Plots SE(2) frame and
   #             marker positions.
   #
+  # @todo
+  # This function has not been tested yet
+  #
   @staticmethod
   def displayFull(cstate, dispArgs):
 
-    # @todo
-    # This function has not been tested yet
     gCurr = cstate.gOB * cstate.g
 
     if dispArgs.state:

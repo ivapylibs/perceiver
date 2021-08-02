@@ -75,7 +75,7 @@ ptsPer.process(image)
 #--[2.3] Visualize the output.
 
 tstate = ptsPer.tracker.getState()
-ptsPer.tracker.setState(tstate.tpt)
+ptsPer.tracker.setState(tstate)
 
 print("\nShould see a box with a red X in the center.\n")
 plt.imshow(image,cmap='Greys')
