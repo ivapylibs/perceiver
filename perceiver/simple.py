@@ -82,8 +82,6 @@ class simple(object):
     if theParams:
       self.params = theParams
     else:
-      # @todo
-      # Not finished yet
       self.params = simple.defaultParams()
 
     # states
@@ -120,6 +118,7 @@ class simple(object):
   # @brief      Get the state or parameters of the tracker.
   #
   # @param[in]  fname   Name of the field to set.
+  #
   # @param[out] fval    Value returned.
   #
   def get(self, fname):
