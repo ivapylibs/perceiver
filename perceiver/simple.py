@@ -35,31 +35,31 @@ import os
 import matplotlib.pyplot as plt
 import time
 import numpy as np
+from dataclasses import dataclass
 
-import perceiver
+from Lie.group.SE2.Homog import Homog
 
-class State(object):
-  def __init__(self, g=None, tPts=None, gOB=None,
-               tMeas=None, haveObs=None, haveState=None):
-    self.g = g
-    self.tPts = tPts
-    self.gOB = gOB
-    self.tMeas = tMeas
-    self.haveObs = haveObs
-    self.haveState = haveState
+@dataclass
+class State:
+  tMeas: any
+  g: Homog = None
+  tPts: np.ndarray = np.array([])
+  gOB: Homog = None
+  haveObs: bool = False
+  haveState:  bool = False
 
-class Info(object):
-  def __init__(self, name=None, version=None, data=None, time=None, params=None):
-    self.name = name
-    self.version = version
-    self.data = data
-    self.time = time
-    self.params = params
+@dataclass
+class Params:
+  display: any = None
+  version: any = None
 
-class Params(object):
-  def __init__(self, display=None, dispargs=None):
-    self.display = display
-    self.version = dispargs
+@dataclass
+class Info:
+  name: str
+  version: str
+  data: str
+  time: str
+  params: Params
 
 # Class description
 class simple(object):
@@ -82,8 +82,6 @@ class simple(object):
     if theParams:
       self.params = theParams
     else:
-      # @todo
-      # Not finished yet
       self.params = simple.defaultParams()
 
     # states
@@ -125,6 +123,7 @@ class simple(object):
   # @brief      Get the state or parameters of the tracker.
   #
   # @param[in]  fname   Name of the field to set.
+  #
   # @param[out] fval    Value returned.
   #
   def get(self, fname):
@@ -138,7 +137,7 @@ class simple(object):
 
     return fval
   
-  #============================== getState %=============================
+  #============================== getState =============================
   #
   # @brief      Returns the current state structure.
   # 
@@ -146,7 +145,8 @@ class simple(object):
   #
   def getState(self):
 
-    # @todo Not used yet
+    # @todo
+    # Not used yet
     # cstate.g = self.gFilter.getState()
     # cstate.gOB   = self.gOB;
 
@@ -207,16 +207,12 @@ class simple(object):
 
   #============================ displayState ===========================
   #
-  def displayState(self, dState):
+  def displayState(self, dState=None):
 
-    if not dState:
+    if not isinstance(dState,State):
       dState = self.getState()
   
     self.tracker.displayState()
-
-    # # # @todo
-    # washeld = ishold
-    # hold on
 
     if self.params.display:
       if self.params.dispargs:
@@ -224,23 +220,12 @@ class simple(object):
       else:
         self.params.display(dState)
 
-    # @todo
-    # if not washeld:
-    #   hold off
   
 
   #============================ displayDebug ===========================
   #
-  def displayDebug(fh, dbState):
-
-    # @todo
-    # Not sure how to translate
-    # if (~isempty(fh))
-    #   figure(fh);
-    # end
-
-    # Do nothing for now.
-
+  def displayDebug(self, fh, dbState):
+    # Not implemented yet
     pass
 
   #================================ info ===============================
@@ -291,10 +276,7 @@ class simple(object):
   #
   def measure(self, I):
 
-    # TODO: measure function is done. the tracker result is stored in the
-    # this.tMeas Now finish the return state function and then test the
-    # demo_simple
-
+    # @note
     # NOTE TO YUNZHI: DO NOT FOLLOW THE DESIGN PATTERN OF YIYE.
     # THE RGB-D DATA IS A UNIT AND GETS PROCESSED AS SUCH.
     # ANY NECESSARY DECOUPLED DETECTION AND POST-PROCESSING SHOULD RESIDE
@@ -316,11 +298,13 @@ class simple(object):
     # fgLayer = self.detector.getForeground()
 
     # Use Ip instead for now
-    fgLayer = self.detector.Ip
+    detState = self.detector.getState()
+    fgLayer = detState.x
 
     # Tracking on binary segmentation mask.
     self.tracker.process(fgLayer)
-    tstate = self.tracker.getstate()
+    tstate = self.tracker.getState()
+
     if hasattr(tstate, 'g') and tstate.g is not None:
      self.tMeas = tstate.g
     elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
@@ -365,7 +349,7 @@ class simple(object):
   #
   @staticmethod
   def defaultParams():
-    # Not finished yet
+
     params = Params()
 
     return params
@@ -384,12 +368,12 @@ class simple(object):
   # @brief      Fill rigid body display routine. Plots SE(2) frame and
   #             marker positions.
   #
+  # @todo
+  # This function has not been tested yet
+  #
   @staticmethod
   def displayFull(cstate, dispArgs):
 
-    # @todo
-    # Not sure what is gOB or g?
-    # This function has not been tested yet
     gCurr = cstate.gOB * cstate.g
 
     if dispArgs.state:
