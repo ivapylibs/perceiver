@@ -98,6 +98,11 @@ class simple(object):
     # results. e.g., tpt of the trackpointers class
     self.tMeas = None #< The last measured track state of the target.
 
+    # @note     Aren't tPts and tMeas the same?  I think so.  tMeas is
+    # the revised name for tPts if I am not mistaken.  Review code to
+    # see if use indicates different functionality.  If not, then please
+    # have all be consistently named.
+
     # Process the run-time parameters.
     # Code missing.
 
