@@ -70,7 +70,7 @@ class simple(object):
   #
   # @param[in] theDetector  The binary segmentation method.
   # @param[in] theTracker   The binary image trackpoint method.
-  # @param[in] trackFilter  The track point filtering approach.
+  # @param[in] trackFilter  The track point filtering / data association approach.
   # @param[in] theParams    Option set of paramters.
   #
   def __init__(self, theDetector, theTracker, trackFilter, theParams):
