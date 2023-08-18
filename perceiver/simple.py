@@ -26,6 +26,7 @@
 #!  set indent to 2 spaces.
 #!  do not indent function code.
 #!  set tab to 4 spaces with conversion to spaces.
+#!  90 columns 
 #
 #============================ perceiver.simple ===========================
 
@@ -68,12 +69,13 @@ class simple(object):
   #
   # @brief  Constructor for the perceiver.simple class.
   #
+  # @todo   Make theParams a config instance.
+  # @param[in] theParams    Option set of paramters. (SHOULD BE A CONFIG)
   # @param[in] theDetector  The binary segmentation method.
   # @param[in] theTracker   The binary image trackpoint method.
   # @param[in] trackFilter  The track point filtering / data association approach.
-  # @param[in] theParams    Option set of paramters.
   #
-  def __init__(self, theDetector, theTracker, trackFilter, theParams):
+  def __init__(self, theParams, theDetector, theTracker, trackFilter):
 
     self.detector = theDetector
     self.tracker = theTracker
