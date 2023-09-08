@@ -78,8 +78,8 @@ class simple(object):
   def __init__(self, theParams, theDetector, theTracker, trackFilter):
 
     self.detector = theDetector
-    self.tracker = theTracker
-    self.filter = trackFilter
+    self.tracker  = theTracker
+    self.filter   = trackFilter
 
     if theParams:
       self.params = theParams
