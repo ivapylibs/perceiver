@@ -39,6 +39,8 @@ import numpy as np
 from dataclasses import dataclass
 
 from Lie.group.SE2.Homog import Homog
+from detector.Configuration import AlgConfig
+
 
 @dataclass
 class State:
@@ -49,10 +51,6 @@ class State:
   haveObs: bool = False
   haveState:  bool = False
 
-@dataclass
-class Params:
-  display: any = None
-  version: any = None
 
 @dataclass
 class Info:
@@ -60,7 +58,96 @@ class Info:
   version: str
   data: str
   time: str
-  params: Params
+  params: dict
+
+#
+#-------------------------------------------------------------------------------
+#============================= Configuration Nodes =============================
+#-------------------------------------------------------------------------------
+#
+
+
+#============================== CfgPerceiver =============================
+#
+class CfgPerceiver(AlgConfig):
+  """!
+  @brief    Configuration instance for a perceiver.  
+
+  Instantiating a perceiver usually requires the detector, tracker, and filter
+  instances to be complete.  Thus any other settings should be specific to how
+  the perceiver will operate or what to do with the processed information.
+  """
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    '''!
+    @brief    Instantiate a puzzle scene (black mat) detector.
+    '''
+
+    if init_dict is None:
+      init_dict = CfgPerceiver.get_default_settings()
+
+    super(CfgPerceiver,self).__init__(init_dict, key_list, new_allowed)
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+
+    default_settings = dict(display = None, version = None)
+    return default_settings
+
+
+#=========================== BuildCfgPerceiver ===========================
+#
+class BuildCfgPerceiver(AlgConfig):
+  """!
+  @brief    Build configuration instance for a perceiver.  
+
+  Instantiating a perceiver usually requires the detector, tracker, and filter
+  instances to be complete.  These need to be defined. So do any other settings
+  should be specific to how the perceiver will operate or what to do with the
+  processed information, which will lie in the perceiver config field.
+  """
+
+  #
+  # @todo   Why set as Algconfig and not dataclass?? What's proper approach?
+  #         For now coding up since implementation is abstracted.  What matters
+  #         is API. Can change later.
+  #
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    '''!
+    @brief    Instantiate an (empty) perceiver builder configuration.
+    '''
+
+    if init_dict is None:
+      init_dict = BuildCfgPerceiver.get_default_settings()
+      # Default settings are empty.  
+
+    super(BuildCfgPerceiver,self).__init__(init_dict, key_list, new_allowed)
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+
+    default_settings = dict(perceiver = None, detector = None, 
+                            tracker = None, filter = None)
+    return default_settings
+
+
+
+#
+#-------------------------------------------------------------------------------
+#=============================== Perceiver Class ===============================
+#-------------------------------------------------------------------------------
+#
 
 # Class description
 class simple(object):
@@ -69,8 +156,7 @@ class simple(object):
   #
   # @brief  Constructor for the perceiver.simple class.
   #
-  # @todo   Make theParams a config instance.
-  # @param[in] theParams    Option set of paramters. (SHOULD BE A CONFIG)
+  # @param[in] theParams    Option set of paramters. 
   # @param[in] theDetector  The binary segmentation method.
   # @param[in] theTracker   The binary image trackpoint method.
   # @param[in] trackFilter  The track point filtering / data association approach.
@@ -84,7 +170,7 @@ class simple(object):
     if theParams:
       self.params = theParams
     else:
-      self.params = simple.defaultParams()
+      self.params = CfgPerceiver()
 
     # states
     self.tPts = None
@@ -344,17 +430,6 @@ class simple(object):
   def adapt(self):
     # Not implemented yet
     pass
-
-  #=========================== defaultParams ===========================
-  #
-  # @brief      Set up default params
-  #
-  @staticmethod
-  def defaultParams():
-
-    params = Params()
-
-    return params
 
   #=========================== displaySimple ===========================
   #
