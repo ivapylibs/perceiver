@@ -1,21 +1,5 @@
 #============================ perceiver.simple ===========================
 #
-#
-# @brief    A simple and general interface class for hierachically detection and tracking
-#           based on RGB-D data
-#
-# The interface that first detection the target from RGB-D data and then
-# find the tracker points.
-#
-# Currently, the detection process is also assumed to be hierachical:
-# RGB detector -> RGB post-process -> D(depth) detector -> D post-process
-# The default methods of all above steps are doing nothing
-#
-# Dependencies:
-#   [function]setIfMissing   Yiye's generalized version
-#
-#
-#
 # @file     simple.m
 #
 # @author   Yiye Chen,       yychen2019@gatech.edu
@@ -150,18 +134,24 @@ class BuildCfgPerceiver(AlgConfig):
 #
 
 # Class description
-class simple(object):
+class Perceiver(object):
+  """!
+  @ingroup  Perceiver
+  @brief    Simple perceiver class.  Most basic implementation.
+  """
 
-  #=============================== simple ==============================
+  #============================== Perceiver ==============================
   #
-  # @brief  Constructor for the perceiver.simple class.
-  #
-  # @param[in] theParams    Option set of paramters. 
-  # @param[in] theDetector  The binary segmentation method.
-  # @param[in] theTracker   The binary image trackpoint method.
-  # @param[in] trackFilter  The track point filtering / data association approach.
   #
   def __init__(self, theParams, theDetector, theTracker, trackFilter):
+    """!
+    @brief  Constructor for the Perceiver class.
+   
+    @param[in] theParams    Option set of paramters. 
+    @param[in] theDetector  The binary segmentation method.
+    @param[in] theTracker   The binary image trackpoint method.
+    @param[in] trackFilter  The track point filtering / data association approach.
+    """
 
     self.detector = theDetector
     self.tracker  = theTracker
