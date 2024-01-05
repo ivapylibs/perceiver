@@ -21,7 +21,13 @@ proximity to the target/goal state. In that case a Progress monitor is needed.
 
 This package attempts to encapsulate the generic functionality of these different
 classes (Perceiver, Monitor, Progress monitor).
+
+
 """
+#
+#! NOTE:    90 columns wide.
+#!
+#
 
 from setuptools import setup, find_packages
 
