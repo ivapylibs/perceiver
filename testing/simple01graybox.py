@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #=============================== simple01graybox ===============================
-## @file    simple01graybox.py
+## @file
 # @brief    Code to test out the simple perceiver for a fairly contrived 
 #           scenario: centroid of a box.
 # 
@@ -15,12 +15,14 @@
 # 
 # runs the script.  
 # 
-# @author   Patricio A. Vela,   pvela@gatech.edu
-#           Yunzhi Lin,         yunzhi.lin@gatech.edu
-# @date     2021/07/03 [created]
-#           2021/07/14 [modified]
 # @ingroup  TestPerceiver
 # @quitf
+#
+# @author   Patricio A. Vela,   pvela@gatech.edu
+# @author   Yunzhi Lin,         yunzhi.lin@gatech.edu
+#
+# @date     2021/07/03 [created]
+# @date     2021/07/14 [modified]
 #
 #=============================== simple01graybox ===============================
 #

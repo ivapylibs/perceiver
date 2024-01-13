@@ -4,16 +4,18 @@
 @brief    A simple interface class for monitoring the outcomes of a perceived scene.
 
 A Monitor tacks on some form of action recognition to make sense of the perceiver
-information.  If the intent is to compare against some target state or establish
-completion, then take a look at the Progress subclass.  It tacks on a target/goal
-state and includes a progress estimator.
+information. As in it monitors the activity state of the perceived scene and
+reports out the activity observations.  If the intent is to compare against some
+target state or establish completion, then take a look at the Progress subclass.
+It tacks on a target/goal state and includes a progress estimator.
 
 The choice was made to have the Monitor class independent of the Perceiver class
 (i.e., not a derived class of it).  Rather it will receive a Perceiver instance and
 snag the signals from it as needed.  Doing so permits a little more flexibility
 regarding how the actual implementation operates, which may be a future need.
 It is still put in the perceiver package based on the implicit messaging of the
-"perceiver" name.
+"perceiver" name. Of course, such a design might interfere with or render
+difficult factory methods (24/01/12: to be determined as implemented).
 
 One reason to change this later on would be that some systems might start with
 a perceiver but then later receive an upgrade to a monitor but keep the same overall
@@ -50,15 +52,10 @@ from dataclasses import dataclass
 from ivapy.Configuration import AlgConfig
 from ivapy.Configuration import BuildConfig
 import perceiver.perceiver as Perceiver
+from detector.base import ActivityState
 
 # PERCEIVER DATACLASS: State
 # PERCEIVER DATACLASS: Info
-
-
-@dataclass
-class ActivityState:
-  xActivity:    any
-  haveObs:      bool = False
 
 
 #
@@ -78,6 +75,16 @@ class CfgMonitor(AlgConfig):
   Instantiating a monitor requires the perceiver and activity detector instances to
   be complete.  Thus any other settings should be specific to how the perceiver will
   operate or what to do with the processed information.
+
+  Fields of the CfgMonitor include:
+
+  | Field       | Meaning |
+  | :---        | :------- |
+  | external    | Is the perceiver already externally called? If so, then Monitor implementation avoids invoking Perceiver process routine during its own processing. |
+  | display     | Set to "basic" for simple display; "overlay" for pure
+  image-based display. |
+  | displayDebug    | Set to "basic" for simple display; "overlay" for pure
+  image-based display. |
   """
 
   #------------------------------ __init__ -----------------------------
@@ -98,7 +105,8 @@ class CfgMonitor(AlgConfig):
   @staticmethod
   def get_default_settings():
 
-    default_settings = dict(display = None, version = None)
+    default_settings = dict(external = False, display = "basic", 
+                            displayDebug = "basic")
     return default_settings
 
     # @todo     What should this be?
@@ -179,7 +187,7 @@ class Monitor(object):
   #================================ Monitor ================================
   #
   #
-  def __init__(self, theParams, thePerceiver, theActivity):
+  def __init__(self, theParams = CfgMonitor(), thePerceiver, theActivity):
     """!
     @brief  Constructor for the perceiver.monitor class.
   
@@ -191,17 +199,14 @@ class Monitor(object):
     self.perceiver = thePerceiver   #< Perceiver instance.
     self.activity  = theActivity    #< Activity detection/recognition instance.
 
-    if theParams:
-      self.params = theParams
-    else:
-      self.params = CfgMonitor()
-
-    # states
-    self.xActivity = None   #< Activity state.
-
-    self.haveRun   = False #< Was an observation measured? - e.g. detect a tracker
-    self.haveObs   = False #< Do we have a state estimate? - e.g. human activity
-    self.haveState = False #< Has not been run before.
+    self.params = theParams
+    # TODO: Delete this code when finalized and confirmed to work.
+    # COMMENTED OUT MEMBER VARIABLES SINCE CONTAINED IN perceiver and activity.
+    #states
+    #self.xActivity = None  # Activity state.
+    #self.haveRun   = False # Was an observation measured? - e.g. detect a tracker
+    #self.haveObs   = False # Do we have a state estimate? - e.g. human activity
+    #self.haveState = False # Has not been run before.
 
     # @todo Code missing. Process the run-time parameters. Maybe no need for base
     #       version.
@@ -213,11 +218,13 @@ class Monitor(object):
   def emptyState(self):
     """!
     @brief      Returns an empty activity state structure.
+
+    Snags default empty state from the activity instance.
     
     @return     Empty activity state structure.
     """
 
-    estate = ActivityState(xActivity = None)
+    estate = self.activity.getEmptyState()
     return estate
 
   #=============================== getState ==============================
@@ -226,11 +233,13 @@ class Monitor(object):
   def getState(self):
     """!
     @brief      Returns the current activity state structure.
+
+    Default is to pass request along to the activity detector.
     
     @param  cstate  The current state structure.
     """
 
-    cstate = ActivityState(xActivity = self.xActivity, haveObs = self.haveObs)
+    cstate = self.activity.getState()
     return cstate
 
   #============================== setState =============================
@@ -239,12 +248,13 @@ class Monitor(object):
   def setState(self, nstate):
     """!
     @brief      Sets the state of the tracker.
+
+    Sends passed state along to the activity detector.
    
     @param[in]  nstate  The new state structure.
     """
 
-    self.xActivity = nstate.xActivity
-    self.haveObs   = nstate.haveObs
+    self.activity.setState(nstate)
 
   
   #=============================== process ===============================
@@ -264,21 +274,54 @@ class Monitor(object):
   #============================ displayState ===========================
   #
   def displayState(self, dState = None):
+    """!
+    @brief  Display the perceiver state and activity state per configuration
+            specification.
 
-    if dState is None: 
-      dState = self.getState()
-  
-    self.perceiver.displayState()
+    @param[in]  dState  Monitor state to display (optional). Default is current state.
+    """
 
-    # @todo Missing code here. Just doing a print. Change later on.
-    print("Activity: " + str(self.xActivity))
+    if (params.display == 'basic'):
+      if dState is None: 
+        self.perceiver.displayState()
+        self.activity.printState()
+      else:
+        self.perceiver.displayState(dState.perceiver)
+        self.activity.printState(dState.activity)
 
+    elif (params.display == 'overlay'):
+      # @todo Need to implement.  Requires window name.  Not an argument.
+      #       For now do not invoke this version.
+      if dState is None: 
+        self.perceiver.displayState()
+        self.activity.displayState()
+      else:
+        self.perceiver.displayState(dState.perceiver)
+        self.activity.displayState(dState.activity)
 
   #============================ displayDebug ===========================
   #
-  def displayDebug(self, fh, dbState):
-    # Not implemented yet
-    pass
+  def displayDebug(self, dbState = None):
+    """!
+    @brief  Display the debug state. Punts to contained instances.
+    """
+    if (params.displayDebug == 'basic'):
+      if dState is None: 
+        self.perceiver.displayState()
+        self.activity.printState()
+      else:
+        self.perceiver.displayState(dState.perceiver)
+        self.activity.printState(dState.activity)
+
+    elif (params.display == 'overlay'):
+      # @todo Need to implement.  Requires window name.  Not an argument.
+      #       For now do not invoke this version.
+      if dState is None: 
+        self.perceiver.displayState()
+        self.activity.displayState()
+      else:
+        self.perceiver.displayState(dState.perceiver)
+        self.activity.displayState(dState.activity)
 
   #================================ info ===============================
   #
@@ -292,13 +335,14 @@ class Monitor(object):
     @param[out] tinfo   The tracking configuration information structure.
     """
 
-    tinfo = Info(name=os.path.basename(__file__),
-         version='1.0.0',
-         data=time.strftime('%Y/%m/%d'),
-         time=time.strftime('%H:%M:%S'),
-         params=self.params)
-
-    return tinfo
+    return None
+#    tinfo = Info(name=os.path.basename(__file__),
+#         version='1.0.0',
+#         data=time.strftime('%Y/%m/%d'),
+#         time=time.strftime('%H:%M:%S'),
+#         params=self.params)
+#
+#    return tinfo
 
   #================================= free ================================
   #
@@ -327,12 +371,15 @@ class Monitor(object):
   #
   def measure(self, I):
     """!
-    @brief  Recover track point or track frame based on detector +
-            trackPointer output.
-   
+    @brief  Run activity detection process to generate activity state measurement. 
+            If perceiver has no measurement/observation, then does nothing.
+
+    @param[in]  I   Image to process. Depending on implementation, might be optional.
     """
 
-    self.perceiver.process(I)
+    if not self.params.external:    # Perceiver process not externally called.
+      self.perceiver.process(I)     # so should run perceiver process now.
+
     self.activity.process(self.perceiver.getState())
 
     # do post processing to collect what is needed.

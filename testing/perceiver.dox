@@ -2,7 +2,16 @@
 @defgroup   TestPerceiver    Perceiver
 @brief      Code that tests perceiver implementations and showcases how to use the API.
 
+@addtogroup TestPerceiver
+@{
 
+@defgroup   TestMonitor     Activity Monitor
+@brief      Code to test out activity monitoring.
 
-*/
+@defgroup   TestProgress    Progress Monitor
+@brief      Code to test out progress monitoring.
+
+@}
+
+**/
 

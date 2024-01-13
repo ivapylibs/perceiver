@@ -20,11 +20,12 @@
 #             Get copy from someone who has it.  Eventually a smaller ROS bag will
 #             be made for this test.
 # 
+# @ingroup    TestPerceiver
+# @quitf
+#
 # @author     Caleb Chang,    
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/02/XX [created]
-# @ingroup    TestPerceiver
-# @quitf
 #
 #============================= simple03magentabag ==============================
 #

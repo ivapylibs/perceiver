@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #============================= simple02magentadot ==============================
-## @file    simple02magentadot.py
+## @file
 # @brief    Test simple perceiver with magenta target detector applied to image
 #           of Mary the manipulator with a small magenta dot at wrist.
 # 
@@ -14,10 +14,11 @@
 # 
 # runs the script.  
 # 
-# @author   Caleb Chang
-# @date     2023/02/XX [created]
 # @ingroup  TestPerceiver
 # @quitf
+#
+# @author   Caleb Chang
+# @date     2023/02/XX [created]
 #
 #============================= simple02magentadot ==============================
 #
