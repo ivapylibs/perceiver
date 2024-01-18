@@ -207,6 +207,10 @@ class Monitor(object):
     #self.haveRun   = False # Was an observation measured? - e.g. detect a tracker
     #self.haveObs   = False # Do we have a state estimate? - e.g. human activity
     #self.haveState = False # Has not been run before.
+    #
+    # @todo One reason the Monitor member variables aren't fully locked down is
+    # because the perceiver itself is not really fully implemented.  Only what
+    # has been needed.  That needs to change.
 
     # @todo Code missing. Process the run-time parameters. Maybe no need for base
     #       version.
@@ -409,6 +413,8 @@ class Monitor(object):
     be the case.
     """
     pass
+
+
 
 #
 #============================== perceiver.monitor ==============================

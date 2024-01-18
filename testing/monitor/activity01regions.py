@@ -29,14 +29,28 @@
 #============================== activity01regions ==============================
 
 
+import numpy as np
+
 import ivapy.display_cv as display
-import ivapy.test.path as pathgen
+import ivapy.test.paths as pathgen
 import ivapy.test.vision as visgen
 
+import perceiver.perceiver as perceiver
+import improcessor.basic as improcessor
 
 
-pathPts = numpy.array([ [10,10] , [40, 40], [50, 50] ])
-thePath = pathgen.PiecewiseLinear(waypoints = pathPts)
+
+pathPts = np.array([ [10,10] , [40, 40], [50, 50] ])
+thePath = pathgen.PiecewiseLines(waypoints = pathPts)
+
+thePerceiver = perceiver.Perceiver.buildTesterGS(10)
+
+theActivity  = regact.imageRegions()
+theActivity.initRegions([50, 50])
+theActivity.addRegionByPolygon([[ 5,  5, 15, 15],[ 5, 15, 15, 5]])
+theActivity.addRegionByPolygon([[35, 35, 45, 45],[35, 45, 45, 35]])
+
+theMonitor = Monitor(None, thePerceiver, theActivity)
 
 
 while True:

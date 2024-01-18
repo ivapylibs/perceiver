@@ -1,6 +1,4 @@
-#============================ perceiver.simple ===========================
-#
-# @file     simple.m
+#============================= perceiver.perceiver =============================
 #
 # @author   Yiye Chen,       yychen2019@gatech.edu
 #           Yunzhi Lin,      yunzhi.lin@gatech.edu
@@ -12,7 +10,7 @@
 #!  set tab to 4 spaces with conversion to spaces.
 #!  90 columns 
 #
-#============================ perceiver.simple ===========================
+#============================= perceiver.perceiver =============================
 
 # Import any necessary libraries/packages.
 
@@ -21,9 +19,12 @@ import matplotlib.pyplot as plt
 import time
 import numpy as np
 from dataclasses import dataclass
+import operator
 
 from Lie.group.SE2.Homog import Homog
 from detector.Configuration import AlgConfig
+import improcessor.basic as improcessor
+import detector.inImage as detector                                             
 
 
 @dataclass
@@ -153,8 +154,6 @@ class Perceiver(object):
     @param[in] trackFilter  The track point filtering / data association approach.
     """
 
-    print("This package file is deprecated. Move to perceiver.py")
-
     self.detector = theDetector
     self.tracker  = theTracker
     self.filter   = trackFilter
@@ -187,12 +186,14 @@ class Perceiver(object):
 
   #================================ set ================================
   #
-  # @brief      Set the state or parameters of the rigid body tracker.
-  #
-  # @param[in]  fname   Name of the field to set.
-  # @param[in]  fval    Value to set.
   # 
   def set(self, fname, fval):
+    """!
+    @brief      Set the state or parameters of the rigid body tracker.
+   
+    @param[in]  fname   Name of the field to set.
+    @param[in]  fval    Value to set.
+    """
 
     if fname == 'state':
         self.setState(fval)
@@ -200,13 +201,15 @@ class Perceiver(object):
 
   #================================ get ================================
   #
-  # @brief      Get the state or parameters of the tracker.
-  #
-  # @param[in]  fname   Name of the field to set.
-  #
-  # @param[out] fval    Value returned.
   #
   def get(self, fname):
+    """!
+    @brief      Get the state or parameters of the tracker.
+   
+    @param[in]  fname   Name of the field to set.
+   
+    @param[out] fval    Value returned.
+    """
 
     if fname == 'state':
       fval = self.getState()
@@ -219,11 +222,13 @@ class Perceiver(object):
   
   #============================== getState =============================
   #
-  # @brief      Returns the current state structure.
-  # 
-  # @param  cstate  The current state structure.
   #
   def getState(self):
+    """!
+    @brief      Returns the current state structure.
+    
+    @param  cstate  The current state structure.
+    """
 
     # @todo
     # Not used yet
@@ -236,11 +241,13 @@ class Perceiver(object):
 
   #============================== setState =============================
   #
-  # @brief      Sets the state of the tracker.
-  #
-  # @param[in]  nstate  The new state structure.
   #
   def setState(self, nstate):
+    """!
+    @brief      Sets the state of the tracker.
+   
+    @param[in]  nstate  The new state structure.
+    """
 
     # @todo
     # gFilter.setState(nstate.g) NEED TO RECONSIDER HOW DONE.
@@ -264,11 +271,13 @@ class Perceiver(object):
   
   #============================= emptyState ============================
   #
-  # @brief      Return state structure with no information.
-  #
-  # @param[out] estate  The state structure with no content.
   #
   def emptyState(self):
+    """!
+    @brief      Return state structure with no information.
+   
+    @param[out] estate  The state structure with no content.
+    """
 
     estate = State(haveObs=False, haveState=False)
 
@@ -276,9 +285,14 @@ class Perceiver(object):
 
   #============================== process ==============================
   #
-  # @brief  Run the tracking pipeline for one step/image measurement.
   #
   def process(self, I):
+    """!
+    @brief  Run the tracking pipeline for one step/image measurement.
+
+    @param[in]  I   The image to process.
+
+    """
 
     self.predict()
     self.measure(I)
@@ -310,13 +324,16 @@ class Perceiver(object):
 
   #================================ info ===============================
   #
-  # @brief      Return the information structure used for saving or
-  #             otherwise determining the tracker setup for
-  #             reproducibility.
-  #
-  # @param[out] tinfo   The tracking configuration information structure.
   #
   def info(self):
+    """!
+    @brief      Return the information structure used for saving or
+                otherwise determining the tracker setup for
+                reproducibility.
+   
+    @param[out] tinfo   The tracking configuration information structure.
+
+    """
 
     tinfo = Info(name=os.path.basename(__file__),
          version='1.0.0',
@@ -350,11 +367,15 @@ class Perceiver(object):
 
   #============================== measure ==============================
   #
-  # @brief  Recover track point or track frame based on detector +
-  #         trackPointer output.
   #
   #
   def measure(self, I):
+    """!
+    @brief  Recover track point or track frame based on detector +
+            trackPointer output.
+
+    @param[in]  I   Image for generating perceived measurement.
+    """
 
     # @note
     # NOTE TO YUNZHI: DO NOT FOLLOW THE DESIGN PATTERN OF YIYE.
@@ -459,5 +480,38 @@ class Perceiver(object):
     plt.show()
     plt.pause(0.1)
 
+
+  #=========================== buildTesterGS ===========================
+  #
+  @staticmethod
+  def buildTesterGS(tauGS = 1, theParams = None, theFilt = None):
+    """!
+    @brief  Builds a simple grayscale thresholding detector and centroid tracker with
+            filtering based on argument.
+
+    The purpose of this builder is to shorten testing code that basically involves
+    this same construction over and over again.  It is much easier to have it
+    all packaged up into a static member function for the test script to have
+    a single line invocation and instantiation of the necessary perceiver.  Permits
+    the non-trivial code to focus on the demonstration at hand (in the test script).
+
+    @param[in]  tauGS   Threshold to apply to grayscale image input. Default is 1.
+    @param[in   theFilt Temporal filter to use. Default = None. 
+    """
+
+    # Create the grayscale detector instance with given threshold.
+    improc = improcessor.basic(operator.ge,(tauGS,))
+    binDet = detector.inImage(improc)
+
+    # Assuming single object will be tracker (e.g., a single centroid).
+    trackptr = tracker.centroid()
+
+    # Package up into a single point perceiver.
+    ptPer = perceiver.Perceiver(theDetector=binDet , theTracker=trackptr, \
+                                trackFilter=theFilt, theParams=theParams)
+
+    return ptPer
+
+
 #
-#============================ simple ============================
+#============================= perceiver.perceiver =============================
