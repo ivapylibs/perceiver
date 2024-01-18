@@ -187,7 +187,7 @@ class Monitor(object):
   #================================ Monitor ================================
   #
   #
-  def __init__(self, theParams = CfgMonitor(), thePerceiver, theActivity):
+  def __init__(self, theParams, thePerceiver, theActivity):
     """!
     @brief  Constructor for the perceiver.monitor class.
   
@@ -195,6 +195,9 @@ class Monitor(object):
     @param[in] thePerceiver Perceiver instance (or possibly not).
     @param[in] theActivity  Activity detector/recognizer.
     """
+
+    if theParams is None:            # Done this way since first arg.
+      theParams = CfgMonitor()
 
     self.perceiver = thePerceiver   #< Perceiver instance.
     self.activity  = theActivity    #< Activity detection/recognition instance.
@@ -285,7 +288,7 @@ class Monitor(object):
     @param[in]  dState  Monitor state to display (optional). Default is current state.
     """
 
-    if (params.display == 'basic'):
+    if (self.params.display == 'basic'):
       if dState is None: 
         self.perceiver.displayState()
         self.activity.printState()
@@ -293,7 +296,7 @@ class Monitor(object):
         self.perceiver.displayState(dState.perceiver)
         self.activity.printState(dState.activity)
 
-    elif (params.display == 'overlay'):
+    elif (self.params.display == 'overlay'):
       # @todo Need to implement.  Requires window name.  Not an argument.
       #       For now do not invoke this version.
       if dState is None: 

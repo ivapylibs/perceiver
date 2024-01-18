@@ -36,28 +36,32 @@ import ivapy.test.paths as pathgen
 import ivapy.test.vision as visgen
 
 import perceiver.perceiver as perceiver
-import improcessor.basic as improcessor
+import perceiver.builders as perbuild
+import detector.activity.byRegion as regact
+import perceiver.monitor as monitor
+
 
 
 
 pathPts = np.array([ [10,10] , [40, 40], [50, 50] ])
 thePath = pathgen.PiecewiseLines(waypoints = pathPts)
 
-thePerceiver = perceiver.Perceiver.buildTesterGS(10)
+thePerceiver = perbuild.buildTesterGS(10)
 
 theActivity  = regact.imageRegions()
 theActivity.initRegions([50, 50])
 theActivity.addRegionByPolygon([[ 5,  5, 15, 15],[ 5, 15, 15, 5]])
 theActivity.addRegionByPolygon([[35, 35, 45, 45],[35, 45, 45, 35]])
 
-theMonitor = Monitor(None, thePerceiver, theActivity)
+theMonitor = monitor.Monitor(None, thePerceiver, theActivity)
 
 
 while True:
 
   cpt = thePath.next()
+  # @todo   IAMHERE - Code works but path doesn't update.  Need to add that.
 
-  theImage = visgen.squareInImage([100, 100], cpt, 5, 50)
+  theImage = visgen.squareInImage([100, 100], cpt, 5, [50])
 
   theMonitor.process(theImage)
 
