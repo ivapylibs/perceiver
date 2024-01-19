@@ -2,7 +2,7 @@
 #============================== activity01regions ==============================
 ## @file
 # @brief    Code to test out the basic activity monitor for a scenario with 
-#           top-left/bottom-right semantics of a tracked square in an image.
+#           top-left/lower-right semantics of a tracked square in an image.
 # 
 # The image is "grayscale"  and gets thresholded to generate a single region.
 # That region is processed to generate a track point, which is used to establish

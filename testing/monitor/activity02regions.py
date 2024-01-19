@@ -2,7 +2,7 @@
 #============================== activity02regions ==============================
 ## @file
 # @brief    Code to test out the basic activity monitor for a scenario with 
-#           cyclic tracking of a square in an image through top-left and bottom-right
+#           cyclic tracking of a square in an image through top-left and lower-right
 #           states.
 # 
 # The image is "grayscale"  and gets thresholded to generate a single region.
