@@ -14,11 +14,12 @@
 # 
 # runs the script.  
 #
-# OUTCOMES:
-#
+# ### Outcome ###
 # The square starts off in activity region 1, leaves the region into undefined
 # space, enters activity region 2, then leaves it and stops at the path terminal 
-# point.
+# point.  The state output is purely text-based. There is visual output of the
+# square to see where it is, and ultimately that it stops moving at the end of 
+# the path.
 # 
 # @ingroup  TestMonitor
 # @quitf
@@ -35,6 +36,8 @@
 #============================== activity01regions ==============================
 
 
+#==[0] Environment dependencies.
+#
 import numpy as np
 
 import ivapy.display_cv as display
@@ -47,33 +50,35 @@ import detector.activity.byRegion as regact
 import perceiver.monitor as monitor
 
 
-
-
+#==[1] Setup necessary class instances.
+#
 pathPts = np.transpose(np.array([ [10,10] , [35, 35], [50, 50] ]))
 thePath = pathgen.StepLines(None, pathPts)
 
 thePerceiver = perbuild.buildTesterGS(10)
 
 theActivity  = regact.imageRegions()
-theActivity.initRegions([50, 50])
+theActivity.initRegions([100, 100])
 theActivity.addRegionByPolygon([[ 5,  5, 15, 15],[ 5, 15, 15, 5]])
 theActivity.addRegionByPolygon([[35, 35, 45, 45],[35, 45, 45, 35]])
 
 theMonitor = monitor.Monitor(None, thePerceiver, theActivity)
 
-
+#==[2] Process in a loop until terminated by user.
+#
 while True:
 
   cpt = thePath.next()
-  # @todo   IAMHERE - Code works but path doesn't update.  Need to add that.
-
   theImage = visgen.squareInImage([100, 100], cpt, 5, [50])
 
   theMonitor.process(theImage)
 
   theMonitor.displayState()
-
   display.gray(theImage)
+
   kp = display.wait(100)
   if (kp == ord('q')):
     quit()
+
+#
+#============================== activity01regions ==============================
