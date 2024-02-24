@@ -28,7 +28,7 @@ from detector.Configuration import AlgConfig
 
 
 @dataclass
-class State:
+class PerceiverState:
   tMeas: any
   g: Homog = None
   tPts: np.ndarray = np.array([])
@@ -235,7 +235,8 @@ class Perceiver(object):
     # cstate.g = self.gFilter.getState()
     # cstate.gOB   = self.gOB;
 
-    cstate = State(tMeas = self.tMeas, haveObs = self.haveObs, haveState = self.haveState)
+    cstate = PerceiverState(tMeas = self.tMeas, haveObs = self.haveObs, 
+                                                haveState = self.haveState)
 
     return cstate
 
@@ -279,7 +280,7 @@ class Perceiver(object):
     @param[out] estate  The state structure with no content.
     """
 
-    estate = State(haveObs=False, haveState=False)
+    estate = PerceiverState(haveObs=False, haveState=False)
 
     return estate
 
