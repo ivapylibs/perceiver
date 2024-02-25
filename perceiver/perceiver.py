@@ -1,14 +1,16 @@
 #============================= perceiver.perceiver =============================
 #
-# @author   Yiye Chen,       yychen2019@gatech.edu
-#           Yunzhi Lin,      yunzhi.lin@gatech.edu
+# @author   Yiye Chen,          yychen2019@gatech.edu
+#           Yunzhi Lin,         yunzhi.lin@gatech.edu
+#           Patricio A. Vela    pvela@gatech.edu
 # @date     2021/04/05  [created]
 #           2021/07/11  [modified]
+#
 #!NOTE:
 #!  set indent to 2 spaces.
 #!  do not indent function code.
 #!  set tab to 4 spaces with conversion to spaces.
-#!  90 columns 
+#!  90 columns with margin at 10 spaces.
 #
 #============================= perceiver.perceiver =============================
 
@@ -22,8 +24,6 @@ from dataclasses import dataclass
 
 from Lie.group.SE2.Homog import Homog
 from detector.Configuration import AlgConfig
-
-
 
 
 
@@ -56,6 +56,7 @@ class Info:
 #
 class CfgPerceiver(AlgConfig):
   """!
+  @ingroup  Perceiver
   @brief    Configuration instance for a perceiver.  
 
   Instantiating a perceiver usually requires the detector, tracker, and filter
@@ -80,6 +81,9 @@ class CfgPerceiver(AlgConfig):
   #
   @staticmethod
   def get_default_settings():
+    """!
+    @brief  Get default configuration settings for Perceiver.
+    """
 
     default_settings = dict(display = None, version = None)
     return default_settings
@@ -89,6 +93,7 @@ class CfgPerceiver(AlgConfig):
 #
 class BuildCfgPerceiver(AlgConfig):
   """!
+  @ingroup  Perceiver
   @brief    Build configuration instance for a perceiver.  
 
   Instantiating a perceiver usually requires the detector, tracker, and filter
@@ -121,11 +126,13 @@ class BuildCfgPerceiver(AlgConfig):
   #
   @staticmethod
   def get_default_settings():
+    """!
+    @brief  Get default configuration settings for Perceiver builder.
+    """
 
     default_settings = dict(perceiver = None, detector = None, 
                             tracker = None, filter = None)
     return default_settings
-
 
 
 #
@@ -134,15 +141,18 @@ class BuildCfgPerceiver(AlgConfig):
 #-------------------------------------------------------------------------------
 #
 
-# Class description
 class Perceiver(object):
   """!
   @ingroup  Perceiver
-  @brief    Simple perceiver class.  Most basic implementation.
+  @brief    Basic implementation of a perceiver class.
+
+  A Perceiver is, at minimum, the combination of a detector and a tracker or track
+  pointer.  It indicates where a "target" is in the image both as a region and
+  as a single point or rigid body frame.  If there is a way to meaningfully filter
+  the point/frame, then adding a trackFilter will incorporate that operation.
   """
 
   #============================== Perceiver ==============================
-  #
   #
   def __init__(self, theParams, theDetector, theTracker, trackFilter):
     """!
@@ -154,26 +164,26 @@ class Perceiver(object):
     @param[in] trackFilter  The track point filtering / data association approach.
     """
 
-    self.detector = theDetector
-    self.tracker  = theTracker
-    self.filter   = trackFilter
+    self.detector = theDetector     #< The detector instance to use.
+    self.tracker  = theTracker      #< The track pointer to use.
+    self.filter   = trackFilter     #< The track filter to use.
 
     if theParams:
-      self.params = theParams
+      self.params = theParams       #< Perceiver runtime parameters.
     else:
       self.params = CfgPerceiver()
 
     # states
-    self.tPts = None
-    self.haveRun   = False #< Was an observation measured? - e.g. detect a tracker
-    self.haveObs   = False #< Do we have a state estimate? - e.g. human activity
-    self.haveState = False #< Has not been run before.
+    self.tPts      = None   #< Track points. [from track filter?]
+    self.haveRun   = False  #< Has not been run before.
+    self.haveObs   = False  #< Was an observation measured? - e.g. detect for tracker
+    self.haveState = False  #< Do we have a state estimate? - e.g. tracker activity.
 
     # data storage
-    self.I = None
+    self.I = None           #< Image passed for processing.
 
     # results. e.g., tpt of the trackpointers class
-    self.tMeas = None #< The last measured track state of the target.
+    self.tMeas = None       #< The last measured track state of the target.
 
     # @note     Aren't tPts and tMeas the same?  I think so.  tMeas is
     # the revised name for tPts if I am not mistaken.  Review code to
@@ -185,7 +195,6 @@ class Perceiver(object):
 
 
   #================================ set ================================
-  #
   # 
   def set(self, fname, fval):
     """!
@@ -200,7 +209,6 @@ class Perceiver(object):
 
 
   #================================ get ================================
-  #
   #
   def get(self, fname):
     """!
@@ -227,7 +235,9 @@ class Perceiver(object):
     """!
     @brief      Returns the current state structure.
     
-    @param  cstate  The current state structure.
+    @return     The current state structure.
+
+    @note       May need some corrections due to uncertainty about tMeas.
     """
 
     # @todo
@@ -292,7 +302,6 @@ class Perceiver(object):
     @brief  Run the tracking pipeline for one step/image measurement.
 
     @param[in]  I   The image to process.
-
     """
 
     self.predict()
@@ -303,6 +312,9 @@ class Perceiver(object):
   #============================ displayState ===========================
   #
   def displayState(self, dState=None):
+    """!
+    @brief  Display the current state of the Perceiver.
+    """
 
     if not isinstance(dState,State):
       dState = self.getState()
@@ -320,6 +332,9 @@ class Perceiver(object):
   #============================ displayDebug ===========================
   #
   def displayDebug(self, fh, dbState):
+    """!
+    @brief  Display the debug state of the Perceiver.
+    """
     # Not implemented yet
     pass
 
@@ -356,19 +371,20 @@ class Perceiver(object):
 
   #============================== predict ==============================
   #
-  # @brief  Predict next measurement, if applicable.
-  #
   def predict(self):
+    """!
+    @brief  Predict next measurement, if applicable.
+    """
+
     # Not implemented yet
     pass
+
   # NOTE: this predict is designed to be any separate predictor other
-  #       than that in the detector and tracker.  the component
+  #       than that in the detector and tracker.  The component
   #       detector/tracker's predict (whole process) is executed in the
   #       measure function
 
   #============================== measure ==============================
-  #
-  #
   #
   def measure(self, I):
     """!
@@ -391,26 +407,26 @@ class Perceiver(object):
     # IT UNDERMINES THE SIMPLICITY OF THE PROGRAMMING AND THE FLEXIBILITY
     # OF THE INTERFACE.
   
-    #! Run measurement/processing.
-
     # Image-based detection and post processing.
     self.detector.process(I)
 
-    # # @todo Not implemented yet
-    # fgLayer = self.detector.getForeground()
-
-    # Use Ip instead for now
     detState = self.detector.getState()
-    fgLayer = detState.x
+    fgLayer  = detState.x
+    # @todo What about mid and post processing?
 
     # Tracking on binary segmentation mask.
     self.tracker.process(fgLayer)
     tstate = self.tracker.getState()
 
+    # Set perceiver state estimate and observation flag
     if hasattr(tstate, 'g') and tstate.g is not None:
-     self.tMeas = tstate.g
+      self.tMeas   = tstate.g
+      self.haveObs = True
     elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
-     self.tMeas = tstate.tpt
+      self.tMeas = tstate.tpt
+      self.haveObs = True
+    else
+      self.haveObs = False
 
     # @todo
     # MAYBE SHOULD JUST SET TO tstate IN CASE IT HAS EXTRA INFORMATION
@@ -425,45 +441,42 @@ class Perceiver(object):
     # @todo
     # self.gFilter.correct(this.tMeas) # DO WE NEED A FILTER? WHY NOT IN TRACKPOINTER?
      
-    # Set observation flag
-    self.haveObs = not np.isnan(self.tMeas).any()
 
   #============================== correct ==============================
   #
-  # @brief  Correct the estimated state based on measured and predicted.
-  #
   def correct(self):
-    # Not implemented yet
-    pass
+    """!
+    @brief  Correct the estimated state based on measured and predicted.
+    """
+    pass        # Not implemented.
 
   #=============================== adapt ===============================
   #
-  # @brief  Adapt parts of the process based on measurements and
-  # corrections.
-  #
   def adapt(self):
-    # Not implemented yet
-    pass
+    """!
+    @brief  Adapt parts of the process based on measurements and corrections.
+    """
+    pass        # Not implemented yet.
 
   #=========================== displaySimple ===========================
   #
-  # @brief      Basic rigid body display routine. Plots SE(2) frame.
-  #
   @staticmethod
   def displaySimple(cstate, dispArgs):
-    # Not implemented yet
-    pass
+    """!
+    @brief      Basic rigid body display routine. Plots SE(2) frame.
+    """
+    pass        # Not implemented yet
 
   #============================ displayFull ============================
   #
-  # @brief      Fill rigid body display routine. Plots SE(2) frame and
-  #             marker positions.
-  #
-  # @todo
-  # This function has not been tested yet
-  #
   @staticmethod
   def displayFull(cstate, dispArgs):
+    """!
+    @brief      Fill rigid body display routine. Plots SE(2) frame and
+                marker positions.
+    """
+  
+    ## @todo This function has not been tested yet
 
     gCurr = cstate.gOB * cstate.g
 
