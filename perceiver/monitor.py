@@ -187,13 +187,14 @@ class Monitor(object):
   #================================ Monitor ================================
   #
   #
-  def __init__(self, theParams, thePerceiver, theActivity):
+  def __init__(self, theParams, thePerceiver, theActivity, theReporter = None):
     """!
     @brief  Constructor for the perceiver.monitor class.
   
     @param[in] theParams    Option set of paramters. 
     @param[in] thePerceiver Perceiver instance (or possibly not).
     @param[in] theActivity  Activity detector/recognizer.
+    @param[in] theReporter  Reporting mechanism for activity outputs.
     """
 
     if theParams is None:            # Done this way since first arg.
@@ -201,6 +202,7 @@ class Monitor(object):
 
     self.perceiver = thePerceiver   #< Perceiver instance.
     self.activity  = theActivity    #< Activity detection/recognition instance.
+    self.reporter  = theReporter    #< Takes activity outcomes and creates report out.
 
     self.params = theParams
     # TODO: Delete this code when finalized and confirmed to work.
