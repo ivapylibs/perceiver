@@ -425,7 +425,7 @@ class Perceiver(object):
     elif hasattr(tstate, 'tpt') and tstate.tpt is not None:
       self.tMeas = tstate.tpt
       self.haveObs = True
-    else
+    else:
       self.haveObs = False
 
     # @todo
