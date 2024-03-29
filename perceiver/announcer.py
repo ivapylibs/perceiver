@@ -1,4 +1,4 @@
-#============================== perceiver.reporter =============================
+#============================= perceiver.announcer =============================
 """!
 
 @brief    API for reporting outcomes of a perceived scene.
@@ -12,7 +12,7 @@ Excel processing? Something else for other programs (python or Matlab)?
 @author   Patricio A. Vela,     pvela@gatech.edu 
 @date     2024/02/24            [created]
 """
-#============================== perceiver.reporter =============================
+#============================= perceiver.announcer =============================
 #!
 #!NOTE:
 #!  set indent to 2 spaces.
@@ -20,9 +20,9 @@ Excel processing? Something else for other programs (python or Matlab)?
 #!  set tab to 4 spaces with conversion to spaces.
 #!  90 columns 
 #
-#============================== perceiver.reporter =============================
+#============================= perceiver.announcer =============================
 
-from ivapylibs.
+
 
 class Reporter,
   __init__
@@ -32,4 +32,4 @@ class Status(Reporter):
 
 
 #
-#============================== perceiver.reporter =============================
+#============================= perceiver.announcer =============================
