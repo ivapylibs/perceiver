@@ -1,0 +1,47 @@
+/*!
+
+@addtogroup    Perceiver
+@{
+@defgroup   Reports Reports
+
+@brief      A set of interfaces for reporting perceiver outcomes during processing.
+
+A collection of interfaces that establish flexible reporting schemes modeled after
+the python logging API.  Unlike logging, reporting is considered part of the
+standard processing routine when a reporter is instantiated.  Reports provide state
+or signal dependent outputs that support analysis, action responses, etc.  In
+constrast, logging is generally meant to output information needed to understand
+the state of code execution during debugging analysis or for post-execution study.
+There is some overlap in the post-execution part, however when logs are studied
+after the fact, the stream needs to be decomposed to be interpreted.  In contrast,
+a report already outputs the data needed and can immediately be studied.  It is
+even possible to respond in real-time as the reporting may be through a channel
+that can be captured in real-time.  An example of this is if the output is to a ROS
+message.
+
+Similar to the logging API, constructing a report consists of building out and
+linking several components.  The components are a channel, a trigger, and an
+announcer.  A channel implements a reporting scheme.  In the python logging API, a
+channel is similar to the combination of a handler and a formatter.  When a report
+is triggered, then the channel needs to take care of outputting the proper message
+to the reporting output "stream."
+
+A trigger determines when a particular state or signal should be reported.  In
+the python logging API, a trigger is similar to a filter and is tested before
+constructing the message or moving forward on state/signal reporting.  Usually
+in logging, some external process requests the log to happen, and the filter
+applies pre-established logic to determine if the logging should be permitted.  
+Here, there is a continuously submitted state/signal and the choice must be made as
+to whether the state should be reported or not.   
+
+An announcer generates the output that will be sent through the reporting channel.
+The most basic version should be plain text, but we can envision other versions
+like JSON or csv compliant outputs.  Any data storage scheme is valid as long as
+it permits some form of sequential outputting and does not require backtracking.
+
+While the code is attached to the perceiver, it is general enough that other
+classes or packages may implement a reporting scheme.  These classes/packages
+should provide their own derived implementations.
+@}
+
+*/

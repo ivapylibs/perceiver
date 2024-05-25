@@ -1,21 +1,12 @@
 #========================== perceiver.reports.channel ==========================
 """!
 
-@brief    API for creating report channels.
-
-A channel implements a reporting scheme.  In the python logging API, a channel is
-similar to the combination of a handler and a formatter.  When a report is
-triggered, then the channel needs to take care of outputting to the desired
-reporting output "stream" the proper message.
-
-Various channel types are possible. 
-
 @author   Patricio A. Vela,     pvela@gatech.edu 
 @date     2024/04/04            [created]
 
 IAMHERE
 """
-#========================== perceiver.reports.trigger ==========================
+#========================== perceiver.reports.channel ==========================
 #!
 #!NOTE:
 #!  set indent to 2 spaces.
@@ -23,18 +14,18 @@ IAMHERE
 #!  set tab to 4 spaces with conversion to spaces.
 #!  90 columns, word margin 9 or 10. 
 #
-#========================== perceiver.reports.trigger ==========================
+#========================== perceiver.reports.channel ==========================
 
 from ivapy.Configuration import AlgConfig
 
 
-#=============================== BuildCfgTrigger ===============================
+#=============================== BuildCfgChannel ===============================
 #
 
-class BuildCfgReporter(AlgConfig):
+class BuildCfgChannelr(AlgConfig):
   """!
-  @ingroup  Reporter_Trigger
-  @brief    Configuration instance for a Trigger.
+  @ingroup  Reports
+  @brief    Configuration instance for a Channel.
 
   """
 
@@ -42,13 +33,13 @@ class BuildCfgReporter(AlgConfig):
   #
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
     '''!
-    @brief    Instantiate a trigger build configuration.
+    @brief    Instantiate a channel build configuration.
     '''
 
     if init_dict is None:
-      init_dict = BuildCfgTrigger.get_default_settings()
+      init_dict = BuildCfgChannel.get_default_settings()
 
-    super(BuildCfgTrigger,self).__init__(init_dict, key_list, new_allowed)
+    super(BuildCfgChannel,self).__init__(init_dict, key_list, new_allowed)
 
 
   #------------------------ get_default_settings -----------------------
@@ -63,30 +54,23 @@ class BuildCfgReporter(AlgConfig):
     return default_settings
 
 
-#=================================== Trigger ===================================
+#=================================== Channel ===================================
 #
 
-class Trigger:
+class Channel:
   """!
-  @ingroup  Reporter_Trigger
+  @ingroup  Reports
   @brief    Base/abstract trigger class.
 
-  A trigger uses history of a state--or possible other externally derived 
-  states--to estalish when to "announce" or report a given piece of information.
-  The announcer then pipes the message or announcement to the proper channel.  In
-  the python logging API, a trigger is similar to a filter is tested before
-  constructing the message or moving forward on state/signal reporting.  Usually,
-  in logging some external process requests the log to happen, and the filter
-  applies some logic to determine if the logging should be permitted.  Here,
-  there is a continuously submitted state/signal and the choice must be made as
-  to whether the state should be reported or not.   
+  A channel implements a reporting scheme.  In the python logging API, a channel is
+  similar to the combination of a handler and a formatter.  When a report is
+  triggered, then the channel needs to take care of outputting to the desired
+  reporting output "stream" the proper message.
 
-  Various triggers are possible, such as always report, report only on change,
-  report if equal to some reference, etc. The role of the trigger is to provide
-  a binary indication as to whether the state/signal should be reported.
+  Various channel types are possible. 
   """
 
-  #============================== Trigger __init__ =============================
+  #============================== Channel __init__ =============================
   #
   def __init__(self):
     """!
@@ -94,17 +78,12 @@ class Trigger:
     """
     pass
 
-  #==================================== test ===================================
-  #
-  def test(self, theSig):
-    """!
-    @brief  Check if a report should be triggered for the supplied signal.
-
-    The base class is the worst trigger possible. Always false.  There is
-    no reporting.  For the opposite, use the always trigger.
-    """
-
     return  False
+
+  #==================================== send ===================================
+  #
+  def send(self):
+    pass
 
 #==================================== Always ===================================
 #

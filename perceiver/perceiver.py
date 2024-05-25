@@ -23,7 +23,7 @@ import numpy as np
 from dataclasses import dataclass
 
 from Lie.group.SE2.Homog import Homog
-from detector.Configuration import AlgConfig
+from ivapy.Configuration import AlgConfig
 
 
 
