@@ -10,7 +10,7 @@ A collection of interfaces that establish flexible reporting schemes modeled aft
 the python logging API.  Unlike logging, reporting is considered part of the
 standard processing routine when a reporter is instantiated.  Reports provide state
 or signal dependent outputs that support analysis, action responses, etc.  In
-constrast, logging is generally meant to output information needed to understand
+contrast, logging is generally meant to output information needed to understand
 the state of code execution during debugging analysis or for post-execution study.
 There is some overlap in the post-execution part, however when logs are studied
 after the fact, the stream needs to be decomposed to be interpreted.  In contrast,

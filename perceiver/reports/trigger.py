@@ -1,7 +1,5 @@
 #========================== perceiver.reports.trigger ==========================
 """!
-
-
 @author   Patricio A. Vela,     pvela@gatech.edu 
 @date     2024/04/04            [created]
 """
@@ -153,7 +151,7 @@ class Always(Trigger):
   #
   def __init__(self, theConfig = CfgTrigger()):
     """!
-    @brief  Constructor for always trigger class.
+    @brief  Constructor for Always trigger class.
     """
     super(Always,self).__init__(theConfig)
 
@@ -161,7 +159,7 @@ class Always(Trigger):
   #
   def test(self, theSig):
     """!
-    @brief  Returns that a report should be triggered for the supplied signal.
+    @brief  Check if a report should be triggered for the supplied signal.
 
     Always return True (opposite of the base class). 
     """
@@ -176,8 +174,9 @@ class onChange(Trigger):
   @ingroup  Reports
   @brief    Class that triggers a report when the state changes.
 
-  In principle, the equality binary operator should work (be defined) for it.
-  If the signal doesn't support equality, then try the whenDiffers trigger.
+  In principle, the equality binary operator should work (be defined) for the signal
+  class.  If the signal doesn't support equality, or equality is a bad idea, then try
+  the whenDiffers trigger.
   """
 
   #============================== onChange __init__ =============================
@@ -208,11 +207,13 @@ class onChange(Trigger):
     if self.isInit:
       changeCheck = not (self.prevSig == theSig)
     else:
+      self.isInit = True
       changeCheck = False
 
     self.prevSig = theSig
 
     return changeCheck
+
 
 #================================== onMatch ==================================
 #
@@ -222,16 +223,19 @@ class onMatch(Trigger):
   @ingroup  Reports
   @brief    Class that triggers a report when the state matches a target state.
 
-  In principle, the equality binary operator should work (be defined) for it.
-  If the signal doesn't support equality, then try the whenClose trigger.
+  In principle, the equality binary operator should work (be defined) for the signal.
+  If equality is not supported, then try the whenClose trigger.
   """
 
   #============================== onMatch __init__ =============================
   #
-  def __init__(self, theConfig = CfgTrigger(), target):
+  def __init__(self, theConfig, target):
     """!
-    @brief  Constructor for onChange trigger class.
+    @brief  Constructor for onMatch trigger class.
     """
+    if (theConfig is None):
+      theConfig = CfgTrigger()
+
     super(onMatch,self).__init__(theConfig)
     self.targSig = target
 
@@ -258,11 +262,15 @@ class onMatch(Trigger):
     return (self.targSig == theSig)
 
 
+
+#================== Non-Euqality Difference or Distance Checks =================
+
+
 #================================== whenClose ==================================
 #
 
 
-class CfgWhenClose(AlgConfig):
+class CfgDistTrigger(AlgConfig):
   """!
   @ingroup  Reports
   @brief    Configuration instance for a Trigger.
@@ -276,9 +284,9 @@ class CfgWhenClose(AlgConfig):
     '''
 
     if init_dict is None:
-      init_dict = CfgWhenClose.get_default_settings()
+      init_dict = CfgDistTrigger.get_default_settings()
 
-    super(CfgWhenClose,self).__init__(init_dict, key_list, new_allowed)
+    super(CfgDistTrigger,self).__init__(init_dict, key_list, new_allowed)
 
 
   #------------------------ get_default_settings -----------------------
@@ -292,6 +300,10 @@ class CfgWhenClose(AlgConfig):
     default_settings = dict(tau = 0, distance = None)
     return default_settings
 
+
+  @staticmethod
+  def scalarDist(i1, i2):
+    return abs(i1-i2)
 
 class whenClose(Trigger):
   """!
@@ -309,7 +321,7 @@ class whenClose(Trigger):
     """!
     @brief  Constructor for whenClose trigger class.
     """
-    super(whenDiffers,self).__init__(theConfig)
+    super(whenClose,self).__init__(theConfig)
     self.targSig  = targSig
 
   #==================================== test ===================================
@@ -323,6 +335,127 @@ class whenClose(Trigger):
     """
 
     return (self.config.distance(self.targSig, theSig) < self.config.tau)
+
+
+#=================================== whenFar ===================================
+#
+
+class whenFar(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when current state is far fromo target state.
+
+  If the signal differense is more than some specified quantity then trigger a report.
+  Use when the the equality binary operator does not work (is not defined) or has
+  non-robust behavior.
+  """
+
+  #============================= whenFar __init__ ============================
+  #
+  def __init__(self, theConfig, targSig):
+    """!
+    @brief  Constructor for whenFar trigger class.
+    """
+    super(whenFar,self).__init__(theConfig)
+    self.targSig  = targSig
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Check if a report should be triggered for the supplied signal.
+    """
+
+    return (self.config.distance(self.targSig, theSig) > self.config.tau)
+
+
+
+#================================= whenSimilar =================================
+#
+
+class whenSimilar(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when current state is similar to previous state.
+
+  If the signal difference is less than some specified quantity then trigger a report.
+  Use when the the equality binary operator does not work (is not defined) or has
+  non-robust behavior.
+  """
+
+  #============================= whenSimilar __init__ ============================
+  #
+  def __init__(self, theConfig, targSig):
+    """!
+    @brief  Constructor for whenClose trigger class.
+    """
+    super(whenSimilar,self).__init__(theConfig)
+    self.isInit   = False
+    self.prevSig  = None
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Check if a report should be triggered for the supplied signal.
+
+    The base class is the worst trigger possible. Always false.  There is
+    no reporting.  For the opposite, use the always trigger.
+    """
+
+    if self.isInit:
+      changeCheck = (self.config.distance(self.prevSig, theSig) < self.config.tau)
+    else:
+      self.isInit = True
+      changeCheck = False
+
+    self.prevSig = theSig
+
+    return changeCheck
+
+#================================= whenDiffers =================================
+#
+
+class whenDiffers(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when current state differs from previous state.
+
+  If the signal differense is greater than some specified quantity then trigger a report.
+  Use when the the equality binary operator does not work (is not defined) or has
+  non-robust behavior.
+  """
+
+  #============================= whenDiffers __init__ ============================
+  #
+  def __init__(self, theConfig, targSig):
+    """!
+    @brief  Constructor for whenClose trigger class.
+    """
+    super(whenDiffers,self).__init__(theConfig)
+    self.isInit   = False
+    self.prevSig  = None
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Check if a report should be triggered for the supplied signal.
+
+    The base class is the worst trigger possible. Always false.  There is
+    no reporting.  For the opposite, use the always trigger.
+    """
+
+    if self.isInit:
+      changeCheck = (self.config.distance(self.prevSig, theSig) > self.config.tau)
+    else:
+      self.isInit = True
+      changeCheck = False
+
+    self.prevSig = theSig
+
+    return changeCheck
+
 
 #
 #========================== perceiver.reports.trigger ==========================
