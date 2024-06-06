@@ -6,6 +6,16 @@
 
 @brief      A set of interfaces for reporting perceiver outcomes during processing.
 
+_Synopsis_ :
+The reporting package implements a news or event reporting system whose output
+is similar to logging but customized for downstream data analysis.  In
+principle, it extends or supports the work of a Monitor by providing
+interpretable output of Monitor status.  The language surrounding this
+implementation comes from that of a news publication and its organizational
+approach to investigating, reporting, and ultimately publishing news/information.  
+
+
+_Details_ :
 A collection of interfaces that establish flexible reporting schemes modeled after
 the python logging API.  Unlike logging, reporting is considered part of the
 standard processing routine when a reporter is instantiated.  Reports provide state

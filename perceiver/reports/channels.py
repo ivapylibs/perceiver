@@ -85,5 +85,52 @@ class Channel:
   def send(self, theAnnouncement):
     print(theAnnouncement)
 
+
+
+#================================== Assignment =================================
+#
+class Assignment(Channel):
+  """!
+  @ingroup  Reports
+  @brief    Assignment class for communication between BeatReporter and Editor.
+
+  An assignment is what links a BeatReporter with and Editor.  It maintains
+  information about the assignment (at minimum it's ID) and what Editor is
+  attached to the BeatReporter.  The base implementation will simply pass along
+  the BeatReporter's Commentary or Announcement.
+  """
+
+  #============================ Assignment __init__ ============================
+  #
+  def __init__(self, theConfig = CfgChannel()):
+    """!
+    @brief  Constructor for base trigger class.
+    """
+    super(self).__init__(theConfig)
+
+    ## Assignment ID given by managing editor.
+    self.id     = None
+    ## Editor linked to the assignment.  Who to report news to.
+    self.editor = None
+
+  #=================================== assign ==================================
+  #
+  def assign(self, assignID, assignEditor):
+    """!
+    @brief  BeatReporter has been assigned work. Follow up on request by
+            configuring a channel between (i.e., linking) Reporter and Editor.
+
+    @param[in]  assignID        ID of assignment/beat.
+    @param[in]  assignEditor    Editor managing the assignment/beat.
+    """
+
+    self.id     = assignID
+    self.editor = assignEditor
+
+  #==================================== send ===================================
+  #
+  def send(self, theCommentary):
+    self.editor.incoming(self.id, theCommentary)
+
 #
 #========================== perceiver.reports.channel ==========================

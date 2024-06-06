@@ -37,7 +37,7 @@ import perceiver.reporter as Reports
 import types
 
 
-trigr = Triggers.Always()
+trigr = Triggers.Trigger()
 
 cfAnn = Announce.CfgAnnouncer()
 cfAnn.signal2text = Announce.Announcer.int2text
@@ -48,6 +48,14 @@ media = Channel.Channel()
 
 testRep = Reports.Reporter(trigr, crier, media)
 flist = (False, True, True, True, True, False)
+
+print("=== Trigger   : Never triggers.  ===")
+for si in flist:
+  testRep.process(si)
+
+
+trigr = Triggers.Always()
+testRep = Reports.Reporter(trigr, crier, media)
 
 print("=== Always    : All flag values. ===")
 for si in flist:
