@@ -86,6 +86,70 @@ class Channel:
     print(theAnnouncement)
 
 
+#==================================== toFile ===================================
+#
+class toFile(Channel):
+  """!
+  @ingroup  Reports
+  @brief    Save to file channel.
+
+  A toFile Channel saves the reports to a file.
+  """
+
+  #============================== Channel __init__ =============================
+  #
+  def __init__(self, theConfig = CfgChannel()):
+    """!
+    @brief  Constructor for base trigger class.
+    """
+    self.config = theConfig
+
+    self.fid = open(self.config.filename, self.config.otype)
+
+  #==================================== send ===================================
+  #
+  def send(self, theAnnouncement):
+    self.fid.write(theAnnouncement)
+
+  #================================== __del__ ==================================
+  #
+  def __del__(self):
+    self.fid.close()
+
+#==================================== toCSV ====================================
+#
+class toCSV(Channel):
+  """!
+  @ingroup  Reports
+  @brief    Save to CSV formatted file channel.
+
+  A toCSV Channel saves the reports to a CSV compliant file.  This channel has very
+  specific usage due to the python CSV File API (See PEP 305).
+  """
+
+  #============================== Channel __init__ =============================
+  #
+  def __init__(self, theConfig = CfgChannel()):
+    """!
+    @brief  Constructor for base trigger class.
+    """
+    self.config = theConfig
+
+    self.fid    = open(self.config.filename, self.config.otype, newline='')
+    self.writer = csv.writer(self.fid)
+    # @todo Permit external function pointer for this that has extra args.
+    # @todo Or figure out how to pass extra args like eargs{:} in MATLAB.
+
+  #================================= sendHeader ================================
+  #
+  def sendHeader(self, theHeader)
+    self.writer.writerow(theHeader)
+ 
+  #==================================== send ===================================
+  #
+  def send(self, theRow):
+    self.writer.writerow(theRow)
+
 
 #================================== Assignment =================================
 #

@@ -141,7 +141,7 @@ class Reporter:
 
     @param[in]  theTrigger      Trigger instance.
     @param[in]  theAnnouncer    Announcer instance.
-    @param[in]  theChanncel     Channel instance.
+    @param[in]  theChannel      Channel instance.
     @param[in]  theConfig       Configuration specifications.
     """
 
@@ -216,13 +216,15 @@ class BeatReporter(Reporter):
 
     @param[in]  theTrigger      Trigger instance.
     @param[in]  theAnnouncer    Announcer instance.
-    @param[in]  theChanncel     Channel instance (optional).
+    @param[in]  theChannel      Channel instance (optional).
     @param[in]  theConfig       Configuration specifications (optional).
     """
 
     super(self).__init__(theTrigger, theAnnouncer, theChannel, theConfig)
 
-    ## Flag indicating whether the BeatReporter is on assignment.
+    ## Flag indicating whether the BeatReporter has an assignment from an Editor.
+    self.hasAssignment  = False
+    ## Flag indicating whether the BeatReporter is on assignment (i.e., reporting).
     self.isOnAssignment = False
 
   #================================= assignBeat ================================
@@ -240,7 +242,65 @@ class BeatReporter(Reporter):
     """
 
     self.channel.assign(theEditor, assignID)
-    self.isOnAssignment= True
+    self.isOnAssignment = True
+    self.hasAssignment  = True
+
+  #================================= pauseBeat =================================
+  #
+  def pauseBeat(self):
+    """!
+    @brief  Pause assignment.  
+    
+    When an assignment is paused, the BeatReporter will not report to Editor.
+    In fact, the default for the class is to not even process triggers.
+    Subclasses can overload this operational scheme and continue processing triggers
+    but without reporting the outcomes to the Editor. 
+    """
+    self.isOnAssignment= False
+
+  #================================= resumeBeat ================================
+  #
+  def resumeBeat(self):
+    """!
+    @brief  Resume assignment.  Will report to Editor when triggered.
+
+    Resume a paused beat assignment.
+    """
+
+    if self.hasAssignment:
+      self.isOnAssignment = True
+
+  #================================ unassignBeat ===============================
+  #
+  def pauseBeat(self):
+    """!
+    @brief  Pause assignment.  
+    
+    When an assignment is paused, the BeatReporter will not report to Editor.
+    In fact, the default for the class is to not even process triggers.
+    Subclasses can overload this operational scheme and continue processing triggers
+    but without reporting the outcomes to the Editor. 
+    """
+    self.isOnAssignment = False
+
+  #================================== process ==================================
+  #
+  def process(self, theSignal):
+    """!
+    @brief  Process incoming signal and report as specified.
+
+    @param[in]  theSignal   Signal to process for reporting.
+
+    @return     Passes back trigger outcome, in case helpful.
+    """
+
+    if self.isOnAssignment and self.trigger.test(theSignal):
+      self.announcer.prepare(theSignal)
+      self.channel.send(self.announcer.announcement)
+      return True
+    else:
+      return False
+
 
   #=============================== assignToEditor ==============================
   #
@@ -299,19 +359,19 @@ class Editor:
     simply share a channel and operate that way.  For more specialized
     operation, use sub-classes and override the default operation.
 
-    @param[in]  theChanncel     Channel instance.
+    @param[in]  theChannel     Channel instance.
     @param[in]  theConfig       Configuration specifications.
     """
 
     if (theConfig is None):
       theConfig = CfgReporter()
 
+    ## List of BeatReporters to manage (replaces role of Triggers).
+    self.reporters = []             
     ## Final output channel for all reports.
     self.channel   = theChannel     
     ## Configuration of Editor
     self.config    = theConfig      
-    ## List of BeatReporters to manage.
-    self.reporters = []             
     ## List of Revision filters for BeatReporter Commentary (optional).
     self.revisions = []             
 
