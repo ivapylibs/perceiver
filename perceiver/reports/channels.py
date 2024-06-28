@@ -88,6 +88,38 @@ class Channel:
 
 #==================================== toFile ===================================
 #
+
+class CfgToFile(CfgChannel):
+  """!
+  @ingroup  Reports
+  @brief    Configuration instance for a Channel.
+  """
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    """!
+    @brief    Instantiate a channel build configuration.
+    """
+
+    if init_dict is None:
+      init_dict = CfgToFile.get_default_settings()
+
+    super(CfgChannel,self).__init__(init_dict, key_list, new_allowed)
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+    """!
+    @brief  Get default build configuration settings for Trigger.
+    """
+
+    default_settings = CfgChannel.get_default_settings()
+    default_settings.update(dict(filename = "chanout.txt", otype="w", header=None))
+    return default_settings
+
 class toFile(Channel):
   """!
   @ingroup  Reports
@@ -142,8 +174,12 @@ class toCSV(Channel):
 
   #================================= sendHeader ================================
   #
-  def sendHeader(self, theHeader)
-    self.writer.writerow(theHeader)
+  def sendHeader(self, theHeader = None):
+    if theHeader is None:
+      if self.config.header is not None:
+        self.write.writerow(self.config.header)
+    else:
+      self.writer.writerow(theHeader)
  
   #==================================== send ===================================
   #
@@ -170,7 +206,7 @@ class Assignment(Channel):
     """!
     @brief  Constructor for base trigger class.
     """
-    super(self).__init__(theConfig)
+    super(Assignment,self).__init__(theConfig)
 
     ## Assignment ID given by managing editor.
     self.id     = None

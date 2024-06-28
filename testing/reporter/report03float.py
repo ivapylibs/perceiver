@@ -40,7 +40,7 @@ import math
 
 trigr = Triggers.Always()
 
-cfAnn = Announce.CfgAnnouncer()
+cfAnn = Announce.CfgAnnouncement()
 cfAnn.signal2text = Announce.Announcer.int2text
 print(cfAnn.signal2text)
 

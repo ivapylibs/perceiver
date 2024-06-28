@@ -104,6 +104,11 @@ class Announcement:
   #
 
   @staticmethod
+  def passthrough(fsig):
+    return fsig
+
+
+  @staticmethod
   def float2text(fspec):
     """!
     @brief  Convert float to string based on preset specification.
