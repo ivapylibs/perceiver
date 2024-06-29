@@ -166,6 +166,125 @@ class Always(Trigger):
     return  True
 
 
+#==================================== Rising ===================================
+#
+
+class Rising(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when binary state changes, on rising edge.
+
+  The signal should be binary or somehow testable to True/False.
+  """
+
+  #=============================== Rising __init__ ==============================
+  #
+  def __init__(self, theConfig = CfgTrigger()):
+    """!
+    @brief  Constructor for onChange trigger class.
+    """
+    super(Rising,self).__init__(theConfig)
+
+    ## The previous Boolean value. Initalized to True to avoid rising edge on first call.
+    self.pBool  = True
+    ## Flag: Is the system initialized?
+    self.isInit = False
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Check if a report should be triggered for the supplied signal.
+
+    Compare the passed signal to that from the last check (if there was one)
+    and return true if they are not equal.  For non-trivial signals, the equality
+    binary test should be overloading to return a meaningful binary outcome.
+
+    On startup, there may be no previous signal.  In that case the first invocation
+    returns a False and stores the signal for future invocations.
+    """
+
+    isRising = False
+    if self.isInit:
+
+      if self.pBool:
+        if not (theSig):        # Falling edge.
+          self.pBool = False
+      else:
+        if (theSig):            # Rising edge.
+          isRising   = True
+          self.pBool = True
+
+    else:
+
+      self.isInit = True
+      if (theSig):
+        self.pBool = True
+      else:
+        self.pBool = False
+
+    return isRising
+
+#=================================== Falling ===================================
+#
+
+class Falling(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when binary state changes, on falling edge.
+
+  The signal should be binary or somehow testable to True/False.
+  """
+
+  #============================== Falling __init__ ==============================
+  #
+  def __init__(self, theConfig = CfgTrigger()):
+    """!
+    @brief  Constructor for onChange trigger class.
+    """
+    super(Falling,self).__init__(theConfig)
+
+    ## The previous Boolean value. Initalized to True to avoid falling edge on first call.
+    self.pBool  = False
+    ## Flag: Is the system initialized?
+    self.isInit = False
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Check if a report should be triggered for the supplied signal.
+
+    Compare the passed signal to that from the last check (if there was one)
+    and return true if they are not equal.  For non-trivial signals, the equality
+    binary test should be overloading to return a meaningful binary outcome.
+
+    On startup, there may be no previous signal.  In that case the first invocation
+    returns a False and stores the signal for future invocations.
+    """
+
+    isFalling = False
+    if self.isInit:
+
+      if self.pBool:
+        if not (theSig):        # Falling edge.
+          self.pBool = False
+          isFalling  = True
+      else:
+        if (theSig):            # Rising edge.
+          self.pBool = True
+
+    else:
+
+      self.isInit = True
+      if (theSig):
+        self.pBool = True
+      else:
+        self.pBool = False
+
+    return isFalling
+
+
 #=================================== onChange ==================================
 #
 

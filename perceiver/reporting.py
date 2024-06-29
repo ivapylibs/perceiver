@@ -18,8 +18,11 @@ See Perceiver/Reports doxygen page for more details.
 #
 #============================= perceiver.reporting =============================
 
+import itertools
+
 from ivapy.Configuration import AlgConfig
 import perceiver.reports.channels as chans
+import perceiver.reports.drafts   as Announce
 
 #=============================== BuildCfgReporter ==============================
 #
@@ -48,9 +51,9 @@ class BuildCfgReporter(AlgConfig):
     '''
 
     if init_dict is None:
-      init_dict = CfgReporter.get_default_settings()
+      init_dict = BuildCfgReporter.get_default_settings()
 
-    super(CfgReporter,self).__init__(init_dict, key_list, new_allowed)
+    super(BuildCfgReporter,self).__init__(init_dict, key_list, new_allowed)
 
 
   #------------------------ get_default_settings -----------------------
@@ -220,12 +223,24 @@ class BeatReporter(Reporter):
     @param[in]  theConfig       Configuration specifications (optional).
     """
 
-    super(self).__init__(theTrigger, theAnnouncer, theChannel, theConfig)
+    if theChannel is None:
+      theChannel = chans.Assignment()
+      print('what none')
+
+    print("BR init:")
+    print(type(theChannel))
+    print(type(theConfig))
+    print(theChannel)
+    print(chans.Assignment())
+
+    super(BeatReporter,self).__init__(theTrigger, theAnnouncer, theChannel, theConfig)
 
     ## Flag indicating whether the BeatReporter has an assignment from an Editor.
     self.hasAssignment  = False
     ## Flag indicating whether the BeatReporter is on assignment (i.e., reporting).
     self.isOnAssignment = False
+
+    print(self.channel)
 
   #================================= assignBeat ================================
   #
@@ -241,7 +256,8 @@ class BeatReporter(Reporter):
     @param[in]  assignID    Assignment ID given (usually outer scope is Editor).
     """
 
-    self.channel.assign(theEditor, assignID)
+    print(self.channel)
+    self.channel.assign(assignID, theEditor)
     self.isOnAssignment = True
     self.hasAssignment  = True
 
@@ -318,6 +334,67 @@ class BeatReporter(Reporter):
     theEditor.addBeat(self, beatRevisor, assignID)
 
 
+  #============================== buildGroup =================================
+  #
+  def buildGroup(triggers = None, announceFuns = None, 
+                 announceCfg = Announce.CfgAnnouncement(),
+                 beatrepCfg = CfgReporter()):
+    """!
+    @brief  Build out a group of BeatReporter instances.
+
+    @param[in]  triggers        List of triggers. Required. Determines no. of BeatReporters
+    @param[in]  announceFuns    Not provided or List of announcement function points.
+    @param[in]  announceCfg     Not provided, singleton, or list of announcement configs. 
+    @param[in]  beatrepCfg      Not provided, singleton, or list of reporter configs. 
+
+    Uses the passed arguments to build out a group of reporters.  The list of Triggers
+    is crucial since there should be one per BeatReporter.  Then, there should be
+    enough information in announceFuns or announceCfgs to instantiate one Announcement
+    per Trigger.  Either enough announceFuns and an announceCfg exists to instantiate
+    multiple Announcements, one per announceFun (in principle equal in number to the
+    quantity of Triggers).  Or no announceFuns and enough announceCfg instances to
+    create multiple Announcements.
+
+    The BeatReporter configuration can be given or not.  It will use a default
+    configuration if not provided.
+    """
+
+    # If no triggers, then there is not enough information to set things up.
+    # The number of triggers sets the downstream processing.
+    if triggers is None:
+      return None
+  
+    if (len(beatrepCfg) == 0):
+      theBRCfgs = list()
+      for ii in range(len(triggers)):
+        theBRCfgs.append( beatrepCfg.clone() )
+      beatrepCfg = theBRCfgs
+  
+    if announceFuns is None:  # No function points, then must have multiple configs.
+      if len(announceCfg) == len(triggers):   # One for each trigger.
+        brGroup = []
+        for i in range(len(triggers)):
+          announce = Announce.Announcement(announceCfg[i])
+          brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]) )
+      else:
+        return None
+
+    elif len(announceFuns) == len(triggers):  
+
+      brGroup = []
+      for i in range(len(triggers)):
+
+        currCfg = announceCfg.clone()
+        currCfg.signal2text = announceFuns[i]
+        announce = Announce.Announcement(currCfg)
+
+        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]))
+
+    else:
+      return None
+
+    return brGroup
+
 
 #==================================== Editor ===================================
 #
@@ -367,13 +444,13 @@ class Editor:
       theConfig = CfgEditor()
 
     ## List of BeatReporters to manage (replaces role of Triggers).
-    self.reporters = []             
+    self.reporters = list()             
     ## Final output channel for all reports.
     self.channel   = theChannel     
     ## Configuration of Editor
     self.config    = theConfig      
     ## List of Revision filters for BeatReporter Commentary (optional).
-    self.revisions = []             
+    self.revisions = list()             
 
   #================================== addBeat ==================================
   #
@@ -388,19 +465,38 @@ class Editor:
     """
 
     nEl = len(self.reporters)
+    #DEBUG
+    print('addBeat: ' + str(nEl))
 
-    if (self.config.autoAssign):    # WHAT IS GOING ON HERE??? WHERE IS AUTOASSIGN?
-      assignID = nEl + 1
+    #if (self.config.autoAssign):    # WHAT IS GOING ON HERE??? WHERE IS AUTOASSIGN?
+    if assignID is None:
+      assignID = nEl
 
-    self.reporters.add(beatReporter)
-    self.revisions.add(beatRevisor)
+    self.reporters.append(beatReporter)
+    self.revisions.append(beatRevisor)
 
-    beatReporter.onAssignment(assignID, self)
+    beatReporter.assignBeat(self, assignID)
 
     # @todo Or is this done by the channel?
     # @todo Figure out whether Editor configures things or channel construction
     #       does it. Or some mix?  Maybe channel is its own type but gets
     #       managed by the Editor.
+
+  #================================ assignGroup ================================
+  #
+  def assignGroup(self, theGroup, theRevisor = None, assignIDs = None):
+    """!
+    @brief  Assign a group of BeatReporters to the Editor.
+    """
+
+    if (theRevisor is None) or (len(theRevisor) == 0) :
+      theRevisor = list(itertools.repeat(theRevisor, len(theGroup)))
+
+    if (assignIDs is None) or (len(assignIDs) !=  len(theGroup)):    
+      assignIDs = list(itertools.repeat(None, len(theGroup)))
+
+    for bi in range(len(theGroup)):
+      self.addBeat(theGroup[bi], theRevisor[bi], assignIDs[bi])
 
   #================================== remBeat ==================================
   #
@@ -462,14 +558,17 @@ class Editor:
     @param[in]  theReport   Report generated by the BeatReporter.
     """
 
+    #DEBUG
+    #print('Editor: incoming. ' + str(assignID))
+    #print(theReport)
     if (assignID >= 0) and (assignID < len(self.reporters)):
       
-      if (self.revisions(assignID)):
-        self.channel.send(self.revisions(assignID).review(theReport))
-      else:
+      if (self.revisions[assignID] is None):
         if theReport is not None:
-          self.channel.report(theReport)
-            # self.reporter(assignID).getCommentary)
+          self.channel.send(theReport)
+          # self.reporter(assignID).getCommentary)
+      else:
+        self.channel.send(self.revisions(assignID).review(theReport))
 
     # TODO: Just made up how operates above.  Review function invocations and
     #       correct as needed.

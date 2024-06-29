@@ -121,11 +121,11 @@ class Announcement:
 
     @return     Returns a function pointer that convert float to string.
     """
+    def inF2T(fsig):
+      return fspec.format(fsig)
 
     return inF2T
 
-    def inF2T(fsig):
-      return fspec.format(fsig)
 
 
   @staticmethod
@@ -150,6 +150,42 @@ class Announcement:
     """
     return ssig
 
+  @staticmethod
+  def counter(icnt = 0):
+    """!
+    @brief  Signal is ignored and replace with invocation counter.
+
+    Every time the trigger happens to involve counter, the counter increases.
+    It starts with 0.  If something else should be used, then pass in the
+    initial value when creating the pointer.
+
+    @return     Counter value.
+    """
+
+    def cntFun(igsig=None):
+      nonlocal icnt
+      rcnt = icnt
+      icnt = icnt + 1
+      return rcnt
+
+    return cntFun
+
+  @staticmethod
+  def fixed(theAnnouncement):
+    """!
+    @brief  Signal is ignored and replace with a fixed output.
+
+    Rather than use the signal to generate the message, a fixed announcement
+    is output. The fixed announcement should be provided when generating the
+    function pointer.
+
+    @return     The fixed announcement.
+    """
+
+    def fixedFun(igsig=None):
+      return theAnnouncement
+
+    return fixedFun
 
 #================================== Commentary =================================
 #

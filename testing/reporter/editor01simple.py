@@ -58,10 +58,12 @@ trigs = [Trigger.Always(), Trigger.Falling(), Trigger.Rising()]
 # In this case, it should be a printf equivalent.
 # Also, all of the BeatReporters lead to "output" outcomes.
 #
-cfAnn = Announce.CfgAnnouncement()
-cfAnn.signal2text = Announce.Announcement.CUSTOMIZE_PER_BR
+sconv = [Announce.Announcement.float2text("{}"), 
+         Announce.Announcement.fixed("\n"),
+         Announce.Announcement.counter() ]
 
-# Assignments behave normally.  No need for custom build out.
+bReporters = Reports.BeatReporter.buildGroup(triggers = trigs, announceFuns = sconv)
+
 
 #==[2] Editor configuration.
 
@@ -69,29 +71,35 @@ cfAnn.signal2text = Announce.Announcement.CUSTOMIZE_PER_BR
 cfChan = Channel.CfgChannel.forEditors();
 media  = Channel.Channel(cfChan)
 
-cfEditor = Reports.CfgEditor()  NEEDED
 tEditor  = Reports.Editor(media)
-tEditor.addBeats(theBeatReporters)  NEEDED
+tEditor.assignGroup(bReporters)  
 
 
 print("=== Output to text. One row per loop, with timings ==")
 # The BeatReporters will pass along to Editor who will output when appropriate.
 
 flist = (0.0, 1.0, 2.2, 2.5, 5.7, 6.2)
-for ni in [0:2]:
-  send False to binary BeatReporters
+for ni in range(3):
+  #send False to binary BeatReporters
+  bReporters[1].process(False)
+  bReporters[2].process(False)
 
   for si in flist:
-    send number to numerical BeatReporter
+    #send number to numerical BeatReporter
+    bReporters[1].process(True)
+    bReporters[2].process(True)
+    bReporters[0].process(si)
 
-  send True to binary BeatReporters
+bReporters[1].process(False)
+bReporters[2].process(False)
 
 
-DONE. SHOULD SEE OUTPUT. COPY BELOW FOR COMPARISON.
-
-
+# DONE. SHOULD SEE OUTPUT. COPY BELOW FOR COMPARISON.
 # EXPECTED OUTPUT:
 #
+#0 0.0 1.0 2.2 2.5 5.7 6.2 
+# 1 0.0 1.0 2.2 2.5 5.7 6.2 
+# 2 0.0 1.0 2.2 2.5 5.7 6.2 
 #
 #
 #=============================== editor01simple ===============================

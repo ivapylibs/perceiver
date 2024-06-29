@@ -59,7 +59,9 @@ class CfgChannel(AlgConfig):
   @staticmethod
   def forEditors():
     theConfig = CfgChannel()
-    cfChan.end = ""
+    theConfig.end = " "
+
+    return theConfig
 
 class Channel:
   """!
