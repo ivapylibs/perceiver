@@ -333,7 +333,7 @@ class Editor:
   receive specific signals, have their own triggers, and respond to the associated
   signals in their own ways.
   An Editor collects the reporter outputs and determines when to publish
-  (or report out) and in what order.   We can the Editor level receipt of activity
+  (or report out) and in what order.   We call the Editor level receipt of activity
   as the the Editor's "news desk." The Editor's collects the information and its
   channel does the reporting through a output generating channel.
 
@@ -364,7 +364,7 @@ class Editor:
     """
 
     if (theConfig is None):
-      theConfig = CfgReporter()
+      theConfig = CfgEditor()
 
     ## List of BeatReporters to manage (replaces role of Triggers).
     self.reporters = []             
@@ -423,6 +423,15 @@ class Editor:
     """
 
     if (assignID >= 0) and (assignID < len(self.reporters)):
+      # @warning    Not good.  First find index by ID. Then remove
+      #             from reporter list and revision list.
+      #             Then unassign and whatever else.
+      #
+      # @note       Actually, looks kosher as reporters get new assignment IDs
+      #             in the for loop just below.  what is good way to manage?
+      #             What is Editor uses ordering or assignID to decide what
+      #             to do?  This can cause problems. To resolve later.
+      #
       theReporter = self.reporters.pop(assignID)
       self.revision.pop(assignID)
 
@@ -458,7 +467,8 @@ class Editor:
       if (self.revisions(assignID)):
         self.channel.send(self.revisions(assignID).review(theReport))
       else:
-        self.channel.report(theReport)
+        if theReport is not None:
+          self.channel.report(theReport)
             # self.reporter(assignID).getCommentary)
 
     # TODO: Just made up how operates above.  Review function invocations and

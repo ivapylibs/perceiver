@@ -16,6 +16,7 @@
 #========================== perceiver.reports.channel ==========================
 
 from ivapy.Configuration import AlgConfig
+import csv
 
 
 
@@ -49,9 +50,16 @@ class CfgChannel(AlgConfig):
     @brief  Get default build configuration settings for Trigger.
     """
 
-    default_settings = dict()
+    default_settings = dict(end = "\n")
     return default_settings
 
+
+  #================================= forEditors ================================
+  #
+  @staticmethod
+  def forEditors():
+    theConfig = CfgChannel()
+    cfChan.end = ""
 
 class Channel:
   """!
@@ -83,7 +91,9 @@ class Channel:
   #==================================== send ===================================
   #
   def send(self, theAnnouncement):
-    print(theAnnouncement)
+    print(theAnnouncement, end = self.config.end)
+
+
 
 
 #==================================== toFile ===================================
@@ -117,7 +127,8 @@ class CfgToFile(CfgChannel):
     """
 
     default_settings = CfgChannel.get_default_settings()
-    default_settings.update(dict(filename = "chanout.txt", otype="w", header=None))
+    default_settings.update(dict(filename = "chanout.txt", otype="w", 
+                                 header=None, runner=None))
     return default_settings
 
 class toFile(Channel):
@@ -180,11 +191,21 @@ class toCSV(Channel):
         self.write.writerow(self.config.header)
     else:
       self.writer.writerow(theHeader)
+
+  #================================= setRunner =================================
+  #
+  def setRunner(self, theRunner):
+    self.config.runner = theRunner
  
   #==================================== send ===================================
   #
   def send(self, theRow):
-    self.writer.writerow(theRow)
+    if self.config.runner is not None:
+      outRow = [self.config.runner]
+      outRow.extend(theRow)
+      self.writer.writerow(outRow)
+    else:
+      self.writer.writerow(theRow)
 
 
 #================================== Assignment =================================
@@ -212,6 +233,8 @@ class Assignment(Channel):
     self.id     = None
     ## Editor linked to the assignment.  Who to report news to.
     self.editor = None
+    ## Is the assignment one to not report to editor, but just part of accumulating info?
+    self.keepQuiet = False
 
   #=================================== assign ==================================
   #
@@ -230,7 +253,8 @@ class Assignment(Channel):
   #==================================== send ===================================
   #
   def send(self, theCommentary):
-    self.editor.incoming(self.id, theCommentary)
+    if not self.keepQuiet:
+      self.editor.incoming(self.id, theCommentary)
 
 #
 #========================== perceiver.reports.channel ==========================

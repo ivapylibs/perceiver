@@ -107,6 +107,10 @@ class Announcement:
   def passthrough(fsig):
     return fsig
 
+  @staticmethod
+  def signal2iterable(fsig):
+    return [fsig]
+
 
   @staticmethod
   def float2text(fspec):

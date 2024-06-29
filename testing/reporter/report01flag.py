@@ -29,21 +29,21 @@
 
 import perceiver as perceiver
 
-import perceiver.reports.announcer as Announce
-import perceiver.reports.trigger as Triggers
-import perceiver.reports.channel as Channel
-import perceiver.reporter as Reports
+import perceiver.reports.drafts   as Announce
+import perceiver.reports.triggers as Triggers
+import perceiver.reports.channels as Channel
+import perceiver.reporting        as Reports
 
 import types
 
 
 trigr = Triggers.Trigger()
 
-cfAnn = Announce.CfgAnnouncer()
-cfAnn.signal2text = Announce.Announcer.int2text
+cfAnn = Announce.CfgAnnouncement()
+cfAnn.signal2text = Announce.Announcement.int2text
 print(cfAnn.signal2text)
 
-crier = Announce.Announcer(cfAnn)
+crier = Announce.Announcement(cfAnn)
 media = Channel.Channel()
 
 testRep = Reports.Reporter(trigr, crier, media)
