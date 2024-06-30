@@ -648,6 +648,14 @@ class BeatReporter(Reporter):
     return brGroup
 
 
+# @todo Create a buildGroupIteratively that has everything packed into iterable
+#       elements.  Just in case want to create more custom instances in a generic
+#       manner.  Imagine having two running commentaries that trigger output.
+#       Like for CSV, where one line has certain information, and a second line
+#       has related information. Can be triggered at same time, but output 
+#       different information to same stream.
+#       Skipping for now since not needed, but may eventually be necessary.
+#       How do we internalize within ROS as needed???
 
 #==================================== Editor ===================================
 #
