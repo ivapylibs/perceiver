@@ -14,8 +14,14 @@
 # 
 # > ./editor01simple.py
 # 
-# runs the script.  The output is text trial number and timing information.
-# There are some manual pauses to output more reasonable times.
+# runs the script.  The output is text trial number and timing information,
+# with the latter hard-coded to be floats. Later code should use actual 
+# clock timing.
+#
+# This process involves reporter output that is text formatted or printable. 
+# No commentary class is used. That should be next step, after which CSV
+# style outputs can be tested.  This script here is a good one to look at
+# for scenarios where text output is reasonable.
 # 
 # @ingroup  TestReporter
 # @quitf
@@ -62,7 +68,8 @@ sconv = [Announce.Announcement.float2text("{}"),
          Announce.Announcement.fixed("\n"),
          Announce.Announcement.counter() ]
 
-bReporters = Reports.BeatReporter.buildGroup(triggers = trigs, announceFuns = sconv)
+bReporters = Reports.BeatReporter.buildGroupWithAnnouncement(
+                              triggers = trigs, announceFuns = sconv)
 
 
 #==[2] Editor configuration.
@@ -75,7 +82,7 @@ tEditor  = Reports.Editor(media)
 tEditor.assignGroup(bReporters)  
 
 
-print("=== Output to text. One row per loop, with timings ==")
+print("=== Output to text. One row per loop, with \"timings\" ==")
 # The BeatReporters will pass along to Editor who will output when appropriate.
 
 flist = (0.0, 1.0, 2.2, 2.5, 5.7, 6.2)

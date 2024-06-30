@@ -94,7 +94,7 @@ class Channel:
   #
   def send(self, theAnnouncement):
     print(theAnnouncement, end = self.config.end)
-
+    return True
 
 
 
@@ -155,6 +155,8 @@ class toFile(Channel):
   #
   def send(self, theAnnouncement):
     self.fid.write(theAnnouncement)
+    return True
+    # @todo see if fid.write returns success status?
 
   #================================== __del__ ==================================
   #
@@ -202,13 +204,19 @@ class toCSV(Channel):
   #==================================== send ===================================
   #
   def send(self, theRow):
+    if theRow is None:
+      print("Skipping")
+      return False
+
     if self.config.runner is not None:
       outRow = [self.config.runner]
       outRow.extend(theRow)
       self.writer.writerow(outRow)
+      # @todo see if writerow returns success status?
     else:
       self.writer.writerow(theRow)
 
+    return True
 
 #================================== Assignment =================================
 #
@@ -235,7 +243,7 @@ class Assignment(Channel):
     self.id     = None
     ## Editor linked to the assignment.  Who to report news to.
     self.editor = None
-    ## Is the assignment one to not report to editor, but just part of accumulating info?
+    ## Is assignment one that doesn't report to editor, but just part of accumulating info?
     self.keepQuiet = False
 
   #=================================== assign ==================================
@@ -257,6 +265,10 @@ class Assignment(Channel):
   def send(self, theCommentary):
     if not self.keepQuiet:
       self.editor.incoming(self.id, theCommentary)
+      return True
+    else:
+      return False
+
 
 #
 #========================== perceiver.reports.channel ==========================

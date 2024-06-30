@@ -138,7 +138,7 @@ class Reporter:
 
   #================================== __init__ =================================
   #
-  def __init__(self, theTrigger, theAnnouncer, theChannel, theConfig = CfgReporter()):
+  def __init__(self, theTrigger, theAnnouncer, theChannel, theConfig = None):
     """!
     @brief  Constructor to reporter class.  Collects necessary pieces.
 
@@ -170,7 +170,10 @@ class Reporter:
 
     if (self.trigger.test(theSignal)):
       self.announcer.prepare(theSignal)
-      self.channel.send(self.announcer.announcement)
+      hasAck = self.channel.send(self.announcer.announcement)
+      if hasAck:
+        self.announcer.ack()
+
       return True
     else:
       return False
@@ -212,8 +215,8 @@ class BeatReporter(Reporter):
 
   #================================== __init__ =================================
   #
-  def __init__(self, theTrigger, theAnnouncer, theChannel = chans.Assignment(), 
-                                               theConfig = CfgReporter()):
+  def __init__(self, theTrigger, theAnnouncer, theChannel = None, 
+                                               theConfig = None):
     """!
     @brief  Constructor to BeatReporter class.  Collects necessary pieces.
 
@@ -223,15 +226,41 @@ class BeatReporter(Reporter):
     @param[in]  theConfig       Configuration specifications (optional).
     """
 
+    # Something weird was happening that when Channel = chans.Assignment() was
+    # set to be the default argument, it always pointed to the same instance and
+    # not to newly created instances.  Apparently, python has this behavior by
+    # design. See below:
+    #
+    # https://medium.com/@nebiyuelias1/be-careful-when-using-default-arguments-in-python-fd92df94efee
+    # https://www.reddit.com/r/learnpython/comments/118ucmz/why_do_python_functions_reuse_pointer_to_mutable/
+    # https://www.reddit.com/r/learnpython/comments/118ucmz/why_do_python_functions_reuse_pointer_to_mutable/
+    #
+    # This behavior was ruining the assignment instances for each BeatReporter.
+    # The fix is super easy and aligns with how coded in other locations (somehow
+    # decided by accident or by having code work that way and subconciously resolving).
+    # Part is also due to following pattern of coding set by others.
+    # It's kind of annoying, but easy to resolve and to avoid once known.
+    # Also introduced me to concept of a sentinal value, which is a design paradigm
+    # and description to remember:
+    #
+    # https://en.wikipedia.org/wiki/Sentinel_value
+    #
+    # Leaving here in case it helps others know why the above default arguments
+    # are pretty standard. Especially others who learn python by doing and not in
+    # a formal class.
+
     if theChannel is None:
       theChannel = chans.Assignment()
-      print('what none')
 
-    print("BR init:")
-    print(type(theChannel))
-    print(type(theConfig))
-    print(theChannel)
-    print(chans.Assignment())
+    if theConfig is None:
+      theConfig = CfgReporter();
+
+    #DEBUG
+    #print("BR init:")
+    #print(type(theChannel))
+    #print(type(theConfig))
+    #print(theChannel)
+    #print(chans.Assignment())
 
     super(BeatReporter,self).__init__(theTrigger, theAnnouncer, theChannel, theConfig)
 
@@ -240,7 +269,8 @@ class BeatReporter(Reporter):
     ## Flag indicating whether the BeatReporter is on assignment (i.e., reporting).
     self.isOnAssignment = False
 
-    print(self.channel)
+    #DEBUG
+    #print(self.channel)
 
   #================================= assignBeat ================================
   #
@@ -256,7 +286,6 @@ class BeatReporter(Reporter):
     @param[in]  assignID    Assignment ID given (usually outer scope is Editor).
     """
 
-    print(self.channel)
     self.channel.assign(assignID, theEditor)
     self.isOnAssignment = True
     self.hasAssignment  = True
@@ -312,7 +341,11 @@ class BeatReporter(Reporter):
 
     if self.isOnAssignment and self.trigger.test(theSignal):
       self.announcer.prepare(theSignal)
-      self.channel.send(self.announcer.announcement)
+      hasAck = self.channel.send(self.announcer.message())
+
+      if hasAck:
+        self.announcer.ack()
+
       return True
     else:
       return False
@@ -334,16 +367,17 @@ class BeatReporter(Reporter):
     theEditor.addBeat(self, beatRevisor, assignID)
 
 
-  #============================== buildGroup =================================
+  #========================= buildGroupWithAnnouncement ========================
   #
-  def buildGroup(triggers = None, announceFuns = None, 
+  @staticmethod
+  def buildGroupWithAnnouncement(triggers = None, announceFuns = None, 
                  announceCfg = Announce.CfgAnnouncement(),
                  beatrepCfg = CfgReporter()):
     """!
     @brief  Build out a group of BeatReporter instances.
 
     @param[in]  triggers        List of triggers. Required. Determines no. of BeatReporters
-    @param[in]  announceFuns    Not provided or List of announcement function points.
+    @param[in]  announceFuns    Not provided or List of announcement function pointers.
     @param[in]  announceCfg     Not provided, singleton, or list of announcement configs. 
     @param[in]  beatrepCfg      Not provided, singleton, or list of reporter configs. 
 
@@ -394,6 +428,167 @@ class BeatReporter(Reporter):
       return None
 
     return brGroup
+
+  #======================== buildGroupWithCommentary ========================
+  #
+  @staticmethod
+  def buildGroupWithCommentary(triggers = None, announceFuns = None, 
+                 commentFuns = None, commentCfg = Announce.CfgCommentary(),
+                 beatrepCfg = CfgReporter()):
+    """!
+    @brief  Build out a group of BeatReporter instances.
+
+    @param[in]  triggers        List of triggers. Required. Determines no. of BeatReporters
+    @param[in]  announceFuns    Not provided or List of commentary function pointers.
+    @param[in]  commentFuns     Not provided or List of commentary function pointers.
+    @param[in]  commentCfg      Not provided, singleton, or list of announcement configs. 
+    @param[in]  beatrepCfg      Not provided, singleton, or list of reporter configs. 
+
+    Uses the passed arguments to build out a group of reporters.  The list of Triggers
+    is crucial since there should be one per BeatReporter.  Then, there should be
+    enough information in announceFuns+commentFuns or commentCfgs to instantiate one
+    Announcement per Trigger.  Either enough announceFuns+commentFuns and an
+    commentCfg exists to instantiate multiple Commentary, one per commentFun (in
+    principle equal in number to the quantity of Triggers).  Or no
+    announceFuns+commentFuns and enough commentCfg instances to create multiple
+    Commentaries.
+
+    The BeatReporter configuration can be given or not.  It will use a default
+    configuration if not provided.
+    """
+
+    # If no triggers, then there is not enough information to set things up.
+    # The number of triggers sets the downstream processing.
+    if triggers is None:
+      return None
+  
+    if (len(beatrepCfg) == 0):
+      theBRCfgs = list()
+      for ii in range(len(triggers)):
+        theBRCfgs.append( beatrepCfg.clone() )
+      beatrepCfg = theBRCfgs
+  
+    if (announceFuns is None):
+      announceFuns = list(itertools.repeat(announceFuns, len(triggers)))
+    elif announceFuns.__class__ == list and (len(announceFuns) == 1):
+      announceFuns = list(itertools.repeat(announceFuns[1], len(triggers)))
+    else:
+      announceFuns = list(itertools.repeat(announceFuns, len(triggers)))
+
+    if commentFuns is None:
+      if len(commentCfg) == len(triggers):   # One for each trigger.
+        brGroup = []
+        for i in range(len(triggers)):
+          announce = Announce.Commentary(commentCfg[i])
+          brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]) )
+      else:
+        return None
+
+    elif len(commentFuns) == len(triggers):  
+
+      brGroup = []
+      for i in range(len(triggers)):
+
+        currCfg = commentCfg.clone()
+        currCfg.signal2text = announceFuns[i]
+        currCfg.signalsaver = commentFuns[i]
+        announce = Announce.Commentary(currCfg)
+
+        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]))
+
+    else:
+      return None
+
+    return brGroup
+
+  #====================== buildGroupWithRunningCommentary ======================
+  #
+  @staticmethod
+  def buildGroupWithRunningCommentary(triggers = None, keepQuiet = False,
+                 announceFun = None, commentFun = None, commentCfg = None,
+                 beatrepCfg = None):
+    """!
+    @brief  Build out a group of BeatReporter instances with Running Commentary.
+
+    @param[in]  triggers        List of triggers. Required. Determines no. of BeatReporters
+    @param[in]  keepQuiet       Singleton or list indicating assignment reporting property.
+    @param[in]  commentCfg      Not provided, singleton, or list of announcement configs. 
+    @param[in]  beatrepCfg      Not provided, singleton, or list of reporter configs. 
+
+
+    The way that a single RunningCommentary works is that all signal feeds get sent to
+    the instance and accumulated.  During accumulation, the Editor should not receive
+    any notification.  However, one assignment or multiple specific assignments should
+    indicate that accumulated information is ready to go.   All others do not send the
+    information to the Editor for action.  There are many different ways to achieve
+    this kind of processing.  The current design was the simplest based on what was
+    built out.
+
+    Because there is only a single Commentary instance that absorbs all information,
+    there is no need to provide multiple comment and announcement functions, just one
+    for each if it is custom.  Otherwise, the default is for the commentfun to be a
+    passthrough and the announceFun to be None.  If the announceFun is not none, it
+    should permit as input the commenFun output (which in the default case is an
+    iterable).
+
+    Uses the passed arguments to build out a group of reporters.  The list of Triggers
+    is crucial since there should be one per BeatReporter.  If the assignment or beat
+    that triggers an output matters, then keepQuiet boolean list should indicate which
+    one it is. Otherwise, all beat assignments will not keep quiet.
+
+    Then, there should be
+    enough information in announceFuns+commentFuns or commentCfgs to instantiate one
+    Announcement per Trigger.  Either enough announceFuns+commentFuns and an
+    commentCfg exists, one per commentFun (in principle equal in number to the
+    quantity of Triggers).  Or no announceFuns+commentFuns and enough commentCfg
+    instances.  All are given the same RunningCommentary.  The Editor instance
+    controls the decision to output.
+
+    The BeatReporter configuration can be given or not.  It will use a default
+    configuration if not provided.
+    """
+
+    # If no triggers, then there is not enough information to set things up.
+    # The number of triggers sets the downstream processing.
+    if triggers is None:
+      return None
+
+    if len(keepQuiet) == 0:
+      keepQuiet = list(itertools.repeat(keepQuiet, len(triggers)))
+    elif len(keepQuiet) != len(triggers):
+      return None
+      # @todo How should invalid setup be dealt with?
+
+    if (commentCfg is None):
+      commentCfg = Announce.CfgRunningCommentary()
+
+    if (commentFun is None):
+      commentFun = Announce.Announcement.passthrough
+
+    commentCfg.signal2text = announceFun
+    commentCfg.signalsaver = commentFun
+
+    if (beatrepCfg is None):
+      beatrepCfg = CfgReporter()
+  
+    if (len(beatrepCfg) == 0):
+      theBRCfgs = list()
+      for ii in range(len(triggers)):
+        theBRCfgs.append( beatrepCfg.clone() )
+      beatrepCfg = theBRCfgs
+  
+    announce = Announce.RunningCommentary(commentCfg)
+    brGroup  = []
+
+    for ii in range(len(triggers)):
+      bReportr = BeatReporter(triggers[ii], announce, theConfig = beatrepCfg[ii]) 
+      bReportr.channel.keepQuiet = keepQuiet[ii]
+
+      brGroup.append( bReportr )
+
+
+    return brGroup
+
 
 
 #==================================== Editor ===================================
@@ -466,7 +661,7 @@ class Editor:
 
     nEl = len(self.reporters)
     #DEBUG
-    print('addBeat: ' + str(nEl))
+    #print('addBeat: ' + str(nEl))
 
     #if (self.config.autoAssign):    # WHAT IS GOING ON HERE??? WHERE IS AUTOASSIGN?
     if assignID is None:
@@ -561,6 +756,7 @@ class Editor:
     #DEBUG
     #print('Editor: incoming. ' + str(assignID))
     #print(theReport)
+    #print(type(theReport))
     if (assignID >= 0) and (assignID < len(self.reporters)):
       
       if (self.revisions[assignID] is None):

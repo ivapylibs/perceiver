@@ -99,6 +99,28 @@ class Announcement:
     """
     self.announcement = self.config.signal2text(theSignal)
 
+  #================================== message ==================================
+  #
+  def message(self):
+    """!
+    @brief  Return the announcement message. 
+    """
+    return self.announcement
+
+  #==================================== ack ====================================
+  #
+  def ack(self):
+    """!
+    @brief  Send along to Announcement that Channel acknowledges message.
+
+    Acknowledgement simply lets the Channel know that there was an action that took
+    place.  The channel may not need to know anything about that, in which case
+    the ack can be ignored.  However, if internal state information requires knowing
+    when the Channel has acted, then this can be useful to reset internal states.
+    """
+    pass
+
+
 
   #========================= signal2text static methods ========================
   #
@@ -108,12 +130,18 @@ class Announcement:
     return fsig
 
   @staticmethod
-  def signal2iterable(fsig):
-    return [fsig]
-
+  def toiterable(fsig):
+    if fsig is None:
+      return None
+    else:
+      return [fsig]
 
   @staticmethod
-  def float2text(fspec):
+  def alwaystoiterable(fsig):
+    return [fsig]
+
+  @staticmethod
+  def float2text(fspec = "{}"):
     """!
     @brief  Convert float to string based on preset specification.
 
@@ -151,7 +179,7 @@ class Announcement:
     return ssig
 
   @staticmethod
-  def counter(icnt = 0):
+  def counter(icnt = 0, cspec = "{}"):
     """!
     @brief  Signal is ignored and replace with invocation counter.
 
@@ -166,7 +194,7 @@ class Announcement:
       nonlocal icnt
       rcnt = icnt
       icnt = icnt + 1
-      return rcnt
+      return cspec.format(rcnt)
 
     return cntFun
 
@@ -186,6 +214,25 @@ class Announcement:
       return theAnnouncement
 
     return fixedFun
+
+  @staticmethod
+  def timeof():
+    """!
+    @brief  Signal is ignored and replace with current time (as string).
+
+    Rather than use the signal to generate the message, use the time of the signal
+    occurence to be the announcement. 
+
+    @return     The fixed announcement.
+    """
+    from datetime import datetime
+
+    def fixedFun(igsig=None):
+      now = datetime.now()
+      return str(now.time())
+
+    return fixedFun
+
 
 #================================== Commentary =================================
 #
@@ -207,7 +254,7 @@ class CfgCommentary(CfgAnnouncement):
     if init_dict is None:
       init_dict = CfgCommentary.get_default_settings()
 
-    super(CfgAnnouncement,self).__init__(init_dict, key_list, new_allowed)
+    super(CfgCommentary,self).__init__(init_dict, key_list, new_allowed)
 
 
   #------------------------ get_default_settings -----------------------
@@ -218,8 +265,8 @@ class CfgCommentary(CfgAnnouncement):
     @brief  Get default build configuration settings for Trigger.
     """
 
-    default_settings = CfgCommentary.get_default_settings()
-    default.settings.update(dict(signalsaver = None))
+    default_settings = CfgAnnouncement.get_default_settings()
+    default_settings.update(dict(signalsaver = None))
 
     return default_settings
 
@@ -236,9 +283,17 @@ class Commentary(Announcement):
   implementation is that some external source will request the information rather
   than being passed along automatically.  
 
-  In that context, it makes sense when used with a BeatReporter who would pass the
-  data along to an Editor.  The Editor can sit on the data, or elect to publish it
-  through the Editor's Channel.
+  Consequently, static signal saving methods are also needed that do not convert the
+  signal to text but rather return what part of the signal to save.  In most cases, a
+  passthrough (inherited from Announcement) will do.  However, there are some cases
+  where the triggered signal is used to create a different kind of message. Downstream
+  processing may prefer to get the commentary rather than convert it into a
+  text/string announcement.  It is up to the downstream part to establish approach.
+
+  The design makes sense when used with a BeatReporter who would pass the data along
+  to an Editor.  The Editor can sit on the data, or elect to publish it through the
+  Editor's Channel. If the Channel can process binary or non-text data, then using
+  the Commentary would be the sensible outcome.
   """
 
   #============================== Channel __init__ =============================
@@ -259,10 +314,101 @@ class Commentary(Announcement):
   #================================= reportout =================================
   #
   def reportout(self):
-    self.announcement = self.config.signal2text(self.commentary)
+    if (self.config.signal2text is None):
+      self.announcement = ""
+    else:
+      self.announcement = self.config.signal2text(self.commentary)
+
+  #================================== message ==================================
+  #
+  def message(self):
+    """!
+    @brief  Return the commentary message. 
+    """
+    if (self.config.signal2text is None):
+      return self.commentary
+    else:
+      return self.config.signal2text(self.commentary)
+
+
+  #========================= signalsaver static methods ========================
+  #
+  #
+  @staticmethod
+  def counter(icnt = 0, cspec = "{}"):
+    """!
+    @brief  Signal is ignored and replace with invocation counter.
+
+    Every time the trigger happens to involve counter, the counter increases.
+    It starts with 0.  If something else should be used, then pass in the
+    initial value when creating the pointer.
+
+    @return     Counter value.
+    """
+
+    def cntFun(igsig=None):
+      nonlocal icnt
+      rcnt = icnt
+      icnt = icnt + 1
+      return rcnt
+
+    return cntFun
+
+  @staticmethod
+  def timeof():
+    """!
+    @brief  Signal is ignored and replace with current time in raw/time format.
+
+    Rather than use the signal to generate the message, use the time of the signal
+    occurence to be the announcement. 
+
+    @return     The fixed announcement.
+    """
+    from datetime import datetime
+
+    def fixedFun(igsig=None):
+      now = datetime.now()
+      return now.time()
+
+    return fixedFun
 
 #============================== RunningCommentary ==============================
 #
+
+class CfgRunningCommentary(CfgAnnouncement):
+  """!
+  @ingroup  Reports
+  @brief    Configuration instance for RunningCommentary.
+
+  """
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    '''!
+    @brief    Instantiate a channel build configuration.
+    '''
+
+    if init_dict is None:
+      init_dict = CfgRunningCommentary.get_default_settings()
+
+    super(CfgRunningCommentary,self).__init__(init_dict, key_list, new_allowed)
+
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+    """!
+    @brief  Get default build configuration settings for Trigger.
+    """
+
+    default_settings = CfgCommentary.get_default_settings()
+
+    return default_settings
+
+
 
 class RunningCommentary(Commentary):
   """!
@@ -281,7 +427,9 @@ class RunningCommentary(Commentary):
     """!
     @brief  Constructor for RunningCommentary class.
     """
-    super(self).__init__(theConfig);
+    super(RunningCommentary,self).__init__(theConfig);
+
+    self.commentary = list()
 
   #================================== prepare ==================================
   #
@@ -291,7 +439,20 @@ class RunningCommentary(Commentary):
 
     @param[in]  theSignal   The signal attached to the announcement.
     """
-    self.commentary = self.config.signalsaver(theSignal, self.commentary)
+    self.commentary.append(self.config.signalsaver(theSignal))
+
+  #==================================== ack ====================================
+  #
+  def ack(self):
+    """!
+    @brief  Send along to Announcement that Channel acknowledges message.
+
+    For a RunningCommentary, acknowledgement indicates that the stored information
+    was used or somehow passed on.  Thus, the old information should be removed
+    so that new information may be accumulated.
+    """
+    self.commentary = list()
+
 
 #
 #=========================== perceiver.reports.drafts ==========================

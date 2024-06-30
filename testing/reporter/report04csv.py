@@ -40,7 +40,7 @@ import math
 trigr = Triggers.Always()
 
 cfAnn = Announce.CfgAnnouncement()
-cfAnn.signal2text = Announce.Announcement.signal2iterable
+cfAnn.signal2text = Announce.Announcement.toiterable
 cfCSV = Channel.CfgToFile();
 cfCSV.filename = "report04output.csv"
 
