@@ -67,10 +67,11 @@ trigs = [Trigger.Always(), Trigger.Falling(), Trigger.Rising()]
 # In this case, it should be a printf equivalent.
 # Also, all of the BeatReporters lead to "output" outcomes.
 #
-bquiet = [True, False, True]
+bquiet  = [True, False, True]
+sigfilt = [None, Announce.Commentary.timeof(), Announce.Commentary.counter() ]
 
 bReporters = Reports.BeatReporter.buildGroupWithRunningCommentary(
-               triggers = trigs, keepQuiet = bquiet)
+               triggers = trigs, keepQuiet = bquiet, filters = sigfilt)
 
 #==[2] Editor configuration.
 

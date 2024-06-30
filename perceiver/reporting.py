@@ -191,6 +191,40 @@ class Reporter:
 #================================= BeatReporter ================================
 #
 
+class CfgBeatReporter(AlgConfig):
+  """!
+  @ingroup  Reports
+  @brief    Configuration instance for a Reporter.
+
+  @warning  NOT IMPLEMENTED.  JUST STUB CODE AS OF NOW.
+  """
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    '''!
+    @brief    Instantiate a Reporter configuration element.
+    '''
+
+    if init_dict is None:
+      init_dict = CfgBeatReporter.get_default_settings()
+
+    super(CfgBeatReporter,self).__init__(init_dict, key_list, new_allowed)
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+    """!
+    @brief  Get default configuration settings for Perceiver.
+    """
+
+    default_settings = CfgReporter.get_default_settings()
+    default_settings.update(dict( filterSignal = None ))
+    return default_settings
+
+
 class BeatReporter(Reporter):
   """!
   @ingroup  Reports
@@ -253,7 +287,7 @@ class BeatReporter(Reporter):
       theChannel = chans.Assignment()
 
     if theConfig is None:
-      theConfig = CfgReporter();
+      theConfig = CfgBeatReporter();
 
     #DEBUG
     #print("BR init:")
@@ -340,7 +374,12 @@ class BeatReporter(Reporter):
     """
 
     if self.isOnAssignment and self.trigger.test(theSignal):
-      self.announcer.prepare(theSignal)
+
+      if (self.config.filterSignal is None):
+        self.announcer.prepare(theSignal)
+      else:
+        self.announcer.prepare(self.config.filterSignal(theSignal))
+
       hasAck = self.channel.send(self.announcer.message())
 
       if hasAck:
@@ -371,8 +410,8 @@ class BeatReporter(Reporter):
   #
   @staticmethod
   def buildGroupWithAnnouncement(triggers = None, announceFuns = None, 
-                 announceCfg = Announce.CfgAnnouncement(),
-                 beatrepCfg = CfgReporter()):
+                 announceCfg = None, 
+                 beatrepCfg = None):
     """!
     @brief  Build out a group of BeatReporter instances.
 
@@ -397,6 +436,12 @@ class BeatReporter(Reporter):
     # The number of triggers sets the downstream processing.
     if triggers is None:
       return None
+
+    if (announceCfg is None):
+      announceCfg = Announce.CfgAnnouncement()
+
+    if (beatrepCfg is None):
+      beatrepCfg = CfgBeatReporter()
   
     if (len(beatrepCfg) == 0):
       theBRCfgs = list()
@@ -433,8 +478,8 @@ class BeatReporter(Reporter):
   #
   @staticmethod
   def buildGroupWithCommentary(triggers = None, announceFuns = None, 
-                 commentFuns = None, commentCfg = Announce.CfgCommentary(),
-                 beatrepCfg = CfgReporter()):
+                 commentFuns = None, commentCfg = None,
+                 beatrepCfg = None):
     """!
     @brief  Build out a group of BeatReporter instances.
 
@@ -461,6 +506,12 @@ class BeatReporter(Reporter):
     # The number of triggers sets the downstream processing.
     if triggers is None:
       return None
+
+    if commentCfg is None:
+      commentCfg = Announce.CfgCommentary()
+
+    if beatrepCfg is None:
+      beatrepCfg = CfgBeatReporter()
   
     if (len(beatrepCfg) == 0):
       theBRCfgs = list()
@@ -504,7 +555,7 @@ class BeatReporter(Reporter):
   #====================== buildGroupWithRunningCommentary ======================
   #
   @staticmethod
-  def buildGroupWithRunningCommentary(triggers = None, keepQuiet = False,
+  def buildGroupWithRunningCommentary(triggers = None, keepQuiet = False, filters = None,
                  announceFun = None, commentFun = None, commentCfg = None,
                  beatrepCfg = None):
     """!
@@ -559,6 +610,12 @@ class BeatReporter(Reporter):
       return None
       # @todo How should invalid setup be dealt with?
 
+    if filters is None:
+      filters = list(itertools.repeat(filters, len(triggers)))
+    elif len(filters) != len(triggers):
+      return None
+      # @todo How should invalid setup be dealt with?
+
     if (commentCfg is None):
       commentCfg = Announce.CfgRunningCommentary()
 
@@ -569,9 +626,9 @@ class BeatReporter(Reporter):
     commentCfg.signalsaver = commentFun
 
     if (beatrepCfg is None):
-      beatrepCfg = CfgReporter()
+      beatrepCfg = CfgBeatReporter()
   
-    if (len(beatrepCfg) == 0):
+    if (beatrepCfg.__class__  != list):
       theBRCfgs = list()
       for ii in range(len(triggers)):
         theBRCfgs.append( beatrepCfg.clone() )
@@ -581,6 +638,7 @@ class BeatReporter(Reporter):
     brGroup  = []
 
     for ii in range(len(triggers)):
+      beatrepCfg[ii].filterSignal = filters[ii]
       bReportr = BeatReporter(triggers[ii], announce, theConfig = beatrepCfg[ii]) 
       bReportr.channel.keepQuiet = keepQuiet[ii]
 
