@@ -199,6 +199,34 @@ class Announcement:
     return cntFun
 
   @staticmethod
+  def counterWithReset(icnt = 0, cspec = "{}"):
+    """!
+    @brief  Signal is ignored and replace with invocation counter.
+
+    Every time the trigger happens to involve counter, the counter increases.
+    It starts with 0.  If something else should be used, then pass in the
+    initial value when creating the pointer.
+
+    @return     Counter value.
+    """
+    tcnt = icnt
+
+    def cntFun(igsig=None):
+      nonlocal tcnt
+      rcnt = tcnt
+      tcnt = tcnt + 1
+      return cspec.format(rcnt)
+
+    def rstFun(igsig=None):
+      nonlocal tcnt
+      nonlocal icnt
+      tcnt = icnt
+      return ""
+
+    return [cntFun, rstFun]
+
+
+  @staticmethod
   def fixed(theAnnouncement):
     """!
     @brief  Signal is ignored and replace with a fixed output.

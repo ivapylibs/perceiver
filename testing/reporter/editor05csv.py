@@ -59,7 +59,7 @@ import math
 # data, the falling is the end of a trial, and the rising
 # is the start of a trial.
 #
-trigs = [Trigger.Always(), Trigger.Falling(), Trigger.Rising()]
+trigs = [Trigger.Falling(), Trigger.Rising(), Trigger.Always()]
 
 # BeatReporters all have same Announcement but send different 
 # text to it, possibly even None (a skip/do nothing).
@@ -67,17 +67,27 @@ trigs = [Trigger.Always(), Trigger.Falling(), Trigger.Rising()]
 # In this case, it should be a printf equivalent.
 # Also, all of the BeatReporters lead to "output" outcomes.
 #
-bquiet  = [True, False, True]
-sigfilt = [None, Announce.Commentary.timeof(), Announce.Commentary.counter() ]
+bquiet  = [False, True, True]
+sigfilt = [Announce.Commentary.timeof(), Announce.Commentary.counter(), None ]
 
 bReporters = Reports.BeatReporter.buildGroupWithRunningCommentary(
-               triggers = trigs, keepQuiet = bquiet, filters = sigfilt)
+                triggers = trigs, keepQuiet = bquiet, filters = sigfilt)
+
+
+trigs   = [Trigger.Rising(), Trigger.onMatch(None, True), Trigger.Falling()]
+bquiet  = [True, True, False]
+sigfilt = [Announce.Announcement.fixed("-")] + Announce.Commentary.counterWithReset()
+
+bReporters2 = Reports.BeatReporter.buildGroupWithRunningCommentary(
+                triggers = trigs, keepQuiet = bquiet, filters = sigfilt)
+
+bReporters.extend(bReporters2)
 
 #==[2] Editor configuration.
 
 # The Editor will need an output channel.
 cfChan = Channel.CfgToFile();
-cfChan.filename = "editor04output.csv"
+cfChan.filename = "editor05output.csv"
 media  = Channel.toCSV(cfChan)
 
 tEditor  = Reports.Editor(media)
@@ -90,27 +100,42 @@ print("=== Output to text. One row per loop, with \"timings\" ==")
 flist = (0.0, 1.0, 2.2, 2.5, 5.7, 6.2)
 for ni in range(3):
   #send False to binary BeatReporters
+  bReporters[0].process(False)
   bReporters[1].process(False)
-  bReporters[2].process(False)
+
+  bReporters[3].process(False)
+  bReporters[4].process(False)
+  bReporters[5].process(False)
 
   for si in flist:
     #send number to numerical BeatReporter
+    bReporters[0].process(True)
     bReporters[1].process(True)
-    bReporters[2].process(True)
-    bReporters[0].process(si)
+    bReporters[2].process(si)       # Comes from flist.
+
+    bReporters[3].process(True)     # Should record puzzle piece counts.
+    bReporters[4].process(True)
+    bReporters[5].process(True)
 
   time.sleep(0.25)
 
+bReporters[0].process(False)
 bReporters[1].process(False)
-bReporters[2].process(False)
+bReporters[3].process(False)
+bReporters[4].process(False)
+bReporters[5].process(False)
+
 
 
 # EXPECTED OUTPUT, EXCEPT THAT LAST ENTRY IN SECONDS SHOULD REFLECT 
 # CURRENT TIME AT INVOCATION OF SCRIPT:
 #
-# 0,0.0,1.0,2.2,2.5,5.7,6.2,14:39:55.580488
-# 1,0.0,1.0,2.2,2.5,5.7,6.2,14:39:55.831334
-# 2,0.0,1.0,2.2,2.5,5.7,6.2,14:39:56.081991
+# 0,0.0,1.0,2.2,2.5,5.7,6.2,18:29:24.248032
+# -,0,1,2,3,4,5,
+# 1,0.0,1.0,2.2,2.5,5.7,6.2,18:29:24.498512
+# -,0,1,2,3,4,5,
+# 2,0.0,1.0,2.2,2.5,5.7,6.2,18:29:24.748955
+# -,0,1,2,3,4,5,
 #
 #
 #================================= editor04csv =================================
