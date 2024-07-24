@@ -84,7 +84,7 @@ tEditor  = Reports.Editor(media)
 tEditor.assignGroup(bReporters)  
 
 
-print("=== Output to text. One row per loop, with \"timings\" ==")
+print("=== Output to text. One row per outer loop, with \"timings\" ==")
 # The BeatReporters will pass along to Editor who will output when appropriate.
 
 flist = (0.0, 1.0, 2.2, 2.5, 5.7, 6.2)

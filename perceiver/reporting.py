@@ -443,12 +443,12 @@ class BeatReporter(Reporter):
     if (beatrepCfg is None):
       beatrepCfg = CfgBeatReporter()
   
-    if (len(beatrepCfg) == 0):
+    if (len(beatrepCfg) == 1):
       theBRCfgs = list()
       for ii in range(len(triggers)):
         theBRCfgs.append( beatrepCfg.clone() )
       beatrepCfg = theBRCfgs
-  
+
     if announceFuns is None:  # No function points, then must have multiple configs.
       if len(announceCfg) == len(triggers):   # One for each trigger.
         brGroup = []
@@ -467,7 +467,7 @@ class BeatReporter(Reporter):
         currCfg.signal2text = announceFuns[i]
         announce = Announce.Announcement(currCfg)
 
-        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]))
+        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]) )
 
     else:
       return None
@@ -513,7 +513,7 @@ class BeatReporter(Reporter):
     if beatrepCfg is None:
       beatrepCfg = CfgBeatReporter()
   
-    if (len(beatrepCfg) == 0):
+    if (len(beatrepCfg) == 1):
       theBRCfgs = list()
       for ii in range(len(triggers)):
         theBRCfgs.append( beatrepCfg.clone() )
