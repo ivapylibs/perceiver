@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#================================= editor04csv =================================
+#================================= editor05sv =================================
 ## @file
 # @brief    Code to test editor scheme with Commentary instances under hard coded loop.
 # 
@@ -14,16 +14,11 @@
 #
 # The code below
 # 
-# > ./editor04csv.py
+# > ./editor05sv.py
 # 
 # runs the script.  The output is text trial number and timing information.
 # The running times are pre-specified floats, while the trial termination
-# time does us actual timing.   The reason to call is "badcsv" is because the
-# Commentary instance outputs to the CSV writer all the time. Because the CSV
-# writer writes complete lines, each output is on its own line.   To get more
-# of the data along the row requires using a RunningCommentary instance that
-# packs everything into an iterable (list) and then passes it along when
-# necessary.
+# time does us actual timing.   
 #
 # @ingroup  TestReporter
 # @quitf
@@ -31,14 +26,14 @@
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2024/06/28 [created]
 #
-#================================= editor04csv =================================
+#================================= editor05sv =================================
 #
 #NOTE:
 #  Number of columns is 90 with margin at 10.
 #  Indent is set to 2 spaces.
 #  Tab is set to 4 spaces with conversion to spaces.
 #
-#================================= editor04csv =================================
+#================================= editor05sv =================================
 
 #==[0] Environment setup.
 #
@@ -138,4 +133,4 @@ bReporters[5].process(False)
 # -,0,1,2,3,4,5,
 #
 #
-#================================= editor04csv =================================
+#================================= editor05sv =================================

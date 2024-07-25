@@ -18,12 +18,7 @@
 # 
 # runs the script.  The output is text trial number and timing information.
 # The running times are pre-specified floats, while the trial termination
-# time does us actual timing.   The reason to call is "badcsv" is because the
-# Commentary instance outputs to the CSV writer all the time. Because the CSV
-# writer writes complete lines, each output is on its own line.   To get more
-# of the data along the row requires using a RunningCommentary instance that
-# packs everything into an iterable (list) and then passes it along when
-# necessary.
+# time does us actual timing.   
 #
 # @ingroup  TestReporter
 # @quitf

@@ -58,7 +58,7 @@ class CfgAnnouncement(AlgConfig):
     @brief  Get default build configuration settings for Trigger.
     """
 
-    default_settings = dict(signal2text = None)
+    default_settings = dict(signal2text = None, Leader = None, Trailer = None)
     return default_settings
 
 
@@ -261,6 +261,23 @@ class Announcement:
 
     return fixedFun
 
+  @staticmethod
+  def dateof():
+    """!
+    @brief  Signal is ignored and replace with current date (as string).
+
+    Rather than use the signal to generate the message, use the date of the signal
+    occurence to be the announcement. 
+
+    @return     The fixed announcement.
+    """
+    from datetime import date
+
+    def fixedFun(igsig=None):
+      return str(date.today())
+
+    return fixedFun
+
 
 #================================== Commentary =================================
 #
@@ -357,6 +374,7 @@ class Commentary(Announcement):
       return self.commentary
     else:
       return self.config.signal2text(self.commentary)
+
 
 
   #========================= signalsaver static methods ========================
@@ -457,7 +475,19 @@ class RunningCommentary(Commentary):
     """
     super(RunningCommentary,self).__init__(theConfig);
 
-    self.commentary = list()
+    self.commentary = None
+    self.reset()
+
+  #=================================== reset ===================================
+  def reset(self):
+
+    if (self.config.Leader is None):
+      self.commentary = list()
+    else:
+      self.commentary = [self.config.Leader]
+
+    #if (self.config.Trailer is not None):
+      #self.commentary.append(self.config.Trailer)
 
   #================================== prepare ==================================
   #
@@ -469,6 +499,7 @@ class RunningCommentary(Commentary):
     """
     self.commentary.append(self.config.signalsaver(theSignal))
 
+
   #==================================== ack ====================================
   #
   def ack(self):
@@ -479,7 +510,8 @@ class RunningCommentary(Commentary):
     was used or somehow passed on.  Thus, the old information should be removed
     so that new information may be accumulated.
     """
-    self.commentary = list()
+    self.reset()
+
 
 
 #

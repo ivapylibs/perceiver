@@ -192,7 +192,7 @@ class toCSV(Channel):
   def sendHeader(self, theHeader = None):
     if theHeader is None:
       if self.config.header is not None:
-        self.write.writerow(self.config.header)
+        self.writer.writerow(self.config.header)
     else:
       self.writer.writerow(theHeader)
 
