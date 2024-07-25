@@ -64,7 +64,7 @@ import math
 # The first set of Beat Reporters is for outputting trial information
 # Rising is start of trial.  Gets binary signal concerning solution board.
 #
-trigs   = [Trigger.Rising(), Trigger.Rising()]
+trigs   = [Trigger.Rising(initState = False), Trigger.Rising(initState = False)]
 bquiet  = [True, False]
 sigfilt = [Announce.Commentary.counter(icnt = 1), Announce.Announcement.dateof()]
 
@@ -78,7 +78,8 @@ trialReport = Reports.BeatReporter.buildGroupWithRunningCommentary(
 # The second set of Beat Reporters is for outputting puzzle piece information.
 # In particular, when subject has indicated placement of a piece.
 #
-trigs   = [Trigger.Rising(), Trigger.onMatch(None, True), Trigger.Falling()]
+trigs   = [Trigger.Rising(initState=False), Trigger.onMatch(None, True), 
+           Trigger.Falling(initState=False)]
 bquiet  = [True, True, False]
 sigfilt = [Announce.Announcement.fixed("-")] + Announce.Commentary.counterWithReset()
 
@@ -91,7 +92,8 @@ pieceReport = Reports.BeatReporter.buildGroupWithRunningCommentary(
 
 # The third set of Beat Reporters is for outputting timing information.
 #
-trigs   = [Trigger.Falling(), Trigger.Rising(), Trigger.Always()]
+trigs   = [Trigger.Falling(initState=False), Trigger.Rising(initState=False), 
+           Trigger.Always()]
 bquiet  = [False, True, True]
 sigfilt = [Announce.Commentary.timeof(), Announce.Commentary.timeof(), None ]
 
@@ -121,22 +123,15 @@ print("=== Output to text. Two rows per outer loop, with \"timings\" ==")
 # The BeatReporters will pass along to Editor who will output when appropriate.
 
 flist = (1.0, 1.5, 2.2, 2.5, 5.7, 6.2)
-bReporters[0].process(False)
-bReporters[1].process(False)
-
-bReporters[2].process(False)
-bReporters[3].process(False)
-bReporters[4].process(False)
-
-bReporters[5].process(False)
-bReporters[6].process(False)
-
 
 for ni in range(3):
+  # Puzzle solution board is in place.
   bReporters[0].process(True)
   bReporters[1].process(True)
 
   for si in flist:
+    # Puzzle place button pressed.
+    #
     bReporters[2].process(True)     # Should record puzzle piece counts.
     bReporters[3].process(True)
     bReporters[4].process(True)
@@ -147,6 +142,8 @@ for ni in range(3):
 
   time.sleep(0.25)
 
+  # Puzzle solution board removed.
+  #
   bReporters[0].process(False)
   bReporters[1].process(False)
 
