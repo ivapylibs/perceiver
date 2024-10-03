@@ -316,7 +316,7 @@ class Perceiver(object):
     @brief  Display the current state of the Perceiver.
     """
 
-    if not isinstance(dState,State):
+    if not isinstance(dState,PerceiverState):
       dState = self.getState()
   
     self.tracker.displayState()

@@ -33,7 +33,7 @@
 import matplotlib.pyplot as plt
 
 import trackpointer.centroid as tracker
-import perceiver.simple as perceiver
+import perceiver.perceiver as perceiver
 
 from detector.fgmodel.targetMagenta import targetMagenta
 import cv2

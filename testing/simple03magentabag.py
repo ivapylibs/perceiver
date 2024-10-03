@@ -48,6 +48,11 @@ import pyrealsense2 as rs                 # Intel RealSense cross-platform open-
 import numpy as np
 
 
+print("Code will fail due to missing ROS bag.")
+print("A new one needs to be recorded.")
+print("Terminating")
+quit()
+
 #==[1] Instantiate perceiver and open stream.
 #
 #--[1.1] Perceiver 
