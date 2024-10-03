@@ -179,16 +179,20 @@ class Rising(Trigger):
 
   #=============================== Rising __init__ ==============================
   #
-  def __init__(self, theConfig = CfgTrigger()):
+  def __init__(self, theConfig = CfgTrigger(), initState = None):
     """!
     @brief  Constructor for onChange trigger class.
     """
     super(Rising,self).__init__(theConfig)
 
-    ## The previous Boolean value. Initalized to True to avoid rising edge on first call.
-    self.pBool  = True
-    ## Flag: Is the system initialized?
-    self.isInit = False
+    if initState is None:
+      ## Previous Boolean value. Initalized to True to avoid rising edge on first call.
+      self.pBool  = True
+      ## Flag: Is the system initialized?
+      self.isInit = False
+    else:
+      self.pBool  = initState
+      self.isInit = True
 
   #==================================== test ===================================
   #
@@ -238,16 +242,20 @@ class Falling(Trigger):
 
   #============================== Falling __init__ ==============================
   #
-  def __init__(self, theConfig = CfgTrigger()):
+  def __init__(self, theConfig = CfgTrigger(), initState = None):
     """!
     @brief  Constructor for onChange trigger class.
     """
     super(Falling,self).__init__(theConfig)
 
-    ## The previous Boolean value. Initalized to True to avoid falling edge on first call.
-    self.pBool  = False
-    ## Flag: Is the system initialized?
-    self.isInit = False
+    if initState is None:
+      ## Previous Boolean value. Initalized to False to avoid falling edge on first call.
+      self.pBool  = False
+      ## Flag: Is the system initialized?
+      self.isInit = False
+    else:
+      self.pBool  = initState
+      self.isInit = True
 
   #==================================== test ===================================
   #

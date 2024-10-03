@@ -443,12 +443,12 @@ class BeatReporter(Reporter):
     if (beatrepCfg is None):
       beatrepCfg = CfgBeatReporter()
   
-    if (len(beatrepCfg) == 0):
+    if (len(beatrepCfg) == 1):
       theBRCfgs = list()
       for ii in range(len(triggers)):
         theBRCfgs.append( beatrepCfg.clone() )
       beatrepCfg = theBRCfgs
-  
+
     if announceFuns is None:  # No function points, then must have multiple configs.
       if len(announceCfg) == len(triggers):   # One for each trigger.
         brGroup = []
@@ -467,7 +467,7 @@ class BeatReporter(Reporter):
         currCfg.signal2text = announceFuns[i]
         announce = Announce.Announcement(currCfg)
 
-        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]))
+        brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]) )
 
     else:
       return None
@@ -513,7 +513,7 @@ class BeatReporter(Reporter):
     if beatrepCfg is None:
       beatrepCfg = CfgBeatReporter()
   
-    if (len(beatrepCfg) == 0):
+    if (len(beatrepCfg) == 1):
       theBRCfgs = list()
       for ii in range(len(triggers)):
         theBRCfgs.append( beatrepCfg.clone() )
@@ -540,9 +540,15 @@ class BeatReporter(Reporter):
       brGroup = []
       for i in range(len(triggers)):
 
-        currCfg = commentCfg.clone()
-        currCfg.signal2text = announceFuns[i]
-        currCfg.signalsaver = commentFuns[i]
+        if len(commentCfg) == len(triggers):
+          currCfg = commentCfg[i]
+          currCfg.signal2text = announceFuns[i]
+          currCfg.signalsaver = commentFuns[i]
+        else:
+          currCfg = commentCfg.clone()
+          currCfg.signal2text = announceFuns[i]
+          currCfg.signalsaver = commentFuns[i]
+
         announce = Announce.Commentary(currCfg)
 
         brGroup.append( BeatReporter(triggers[i], announce, theConfig = beatrepCfg[i]))
@@ -556,31 +562,35 @@ class BeatReporter(Reporter):
   #
   @staticmethod
   def buildGroupWithRunningCommentary(triggers = None, keepQuiet = False, filters = None,
-                 announceFun = None, commentFun = None, commentCfg = None,
-                 beatrepCfg = None):
+                 beatrepCfg = None, 
+                 announceFun = None, commentFun = None, commentCfg = None):
     """!
     @brief  Build out a group of BeatReporter instances with Running Commentary.
 
     @param[in]  triggers        List of triggers. Required. Determines no. of BeatReporters
     @param[in]  keepQuiet       Singleton or list indicating assignment reporting property.
-    @param[in]  commentCfg      Not provided, singleton, or list of announcement configs. 
+    @param[in]  announceFun     Not provided or singleton. 
+    @param[in]  commentFun      Not provided or singleton. 
+    @param[in]  commentCfg      Not provided or singleton. 
     @param[in]  beatrepCfg      Not provided, singleton, or list of reporter configs. 
 
 
     The way that a single RunningCommentary works is that all signal feeds get sent to
     the instance and accumulated.  During accumulation, the Editor should not receive
-    any notification.  However, one assignment or multiple specific assignments should
-    indicate that accumulated information is ready to go.   All others do not send the
-    information to the Editor for action.  There are many different ways to achieve
-    this kind of processing.  The current design was the simplest based on what was
-    built out.
+    any notification.  When the accumulated information is ready to go, one assignment
+    or multiple specific assignments should indicate as much.   All other assignments
+    do not send along information to the Editor for action.  There are many different
+    ways to achieve this kind of processing.  The current design was the simplest
+    based on what was built out.
 
-    Because there is only a single Commentary instance that absorbs all information,
-    there is no need to provide multiple comment and announcement functions, just one
-    for each if it is custom.  Otherwise, the default is for the commentfun to be a
-    passthrough and the announceFun to be None.  If the announceFun is not none, it
-    should permit as input the commenFun output (which in the default case is an
-    iterable).
+    HOW TO INVOKE:
+
+    Because there is only a single (Running) Commentary instance that absorbs all
+    information, there is no need to provide multiple comment and announcement
+    functions. Just one of each if it is custom, otherwise, the default is for the
+    commentFun to be a passthrough and the announceFun to be None.  If the announceFun
+    is not none, it should permit as input the commenFun output (which in the default
+    case is an iterable).
 
     Uses the passed arguments to build out a group of reporters.  The list of Triggers
     is crucial since there should be one per BeatReporter.  If the assignment or beat
@@ -599,6 +609,8 @@ class BeatReporter(Reporter):
     configuration if not provided.
     """
 
+    #== Step 1: Address optional arguments and massage as needed.
+    #
     # If no triggers, then there is not enough information to set things up.
     # The number of triggers sets the downstream processing.
     if triggers is None:
@@ -616,15 +628,22 @@ class BeatReporter(Reporter):
       return None
       # @todo How should invalid setup be dealt with?
 
-    if (commentCfg is None):
-      commentCfg = Announce.CfgRunningCommentary()
-
     if (commentFun is None):
       commentFun = Announce.Announcement.passthrough
+
+
+    #== Step 2: Build out the Running Commentary configuration.
+    #           Only one RunningCommentary instance created. Hence only one config.
+    #
+    if (commentCfg is None):
+      commentCfg = Announce.CfgRunningCommentary()
 
     commentCfg.signal2text = announceFun
     commentCfg.signalsaver = commentFun
 
+    #== Step 3: Now address necessary pre-configuration for the Beat Reporters.
+    #           There should be one Beat Reporter for each trigger.
+    #
     if (beatrepCfg is None):
       beatrepCfg = CfgBeatReporter()
   
@@ -634,10 +653,17 @@ class BeatReporter(Reporter):
         theBRCfgs.append( beatrepCfg.clone() )
       beatrepCfg = theBRCfgs
   
+    
+    #== Step 4: Build out the set of Beat Reporters.
+    #           Attach each one to the Running Commentary instance.
+    #           Their information gets passed through this one Announcement instance.
+    #           When triggered, the Editor deals with the output generated.
+    #
     announce = Announce.RunningCommentary(commentCfg)
-    brGroup  = []
 
+    brGroup  = []
     for ii in range(len(triggers)):
+
       beatrepCfg[ii].filterSignal = filters[ii]
       bReportr = BeatReporter(triggers[ii], announce, theConfig = beatrepCfg[ii]) 
       bReportr.channel.keepQuiet = keepQuiet[ii]
