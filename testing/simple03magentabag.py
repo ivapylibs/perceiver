@@ -21,13 +21,12 @@
 #             be made for this test.
 # 
 # @ingroup    TestPerceiver
-# @quitf
 #
 # @author     Caleb Chang,    
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/02/XX [created]
 #
-#============================= simple03magentabag ==============================
+# @quitf
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.

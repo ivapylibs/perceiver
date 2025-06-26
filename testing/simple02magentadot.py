@@ -15,12 +15,11 @@
 # runs the script.  
 # 
 # @ingroup  TestPerceiver
-# @quitf
 #
 # @author   Caleb Chang
 # @date     2023/02/XX [created]
 #
-#============================= simple02magentadot ==============================
+# @quitf
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.

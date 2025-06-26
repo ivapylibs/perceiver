@@ -16,7 +16,6 @@
 # runs the script.  
 # 
 # @ingroup  TestPerceiver
-# @quitf
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @author   Yunzhi Lin,         yunzhi.lin@gatech.edu
@@ -24,7 +23,7 @@
 # @date     2021/07/03 [created]
 # @date     2021/07/14 [modified]
 #
-#=============================== simple01graybox ===============================
+# @quitf
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.
