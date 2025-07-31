@@ -1,11 +1,19 @@
 #========================== perceiver.reports.channel ==========================
-"""!
-
-@author   Patricio A. Vela,     pvela@gatech.edu 
-@date     2024/04/04            [created]
-
-"""
-#========================== perceiver.reports.channel ==========================
+##
+# @package  perceiver.reports.channel
+#
+# Classes describing different reporting channel options.
+# In the python logging API, a channel is similar to the combination of a
+# handler and a formatter.  When a report is triggered, then the channel needs
+# to take care of outputting to the desired reporting output "stream" the
+# proper message.  Example streams include stdio, a file, a ROS message, or
+# even a REST message.  The base class outputs to stdio.
+#
+# @author   Patricio A. Vela,     pvela@gatech.edu 
+# @date     2024/04/04            [created]
+# 
+# @ingroup  Reports
+#
 #!
 #!NOTE:
 #!  set indent to 2 spaces.
@@ -17,8 +25,6 @@
 
 from ivapy.Configuration import AlgConfig
 import csv
-
-
 
 #=================================== Channel ===================================
 #

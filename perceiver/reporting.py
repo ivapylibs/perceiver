@@ -1,14 +1,16 @@
 #============================= perceiver.reporting =============================
-"""!
-
-Python package/module with top-level API for reporting outcomes of a perceived scene.
-See Perceiver/Reports doxygen page for more details.
-
-@author   Patricio A. Vela,     pvela@gatech.edu 
-@date     2024/02/24            [created]
-
-"""
-#============================= perceiver.reporting =============================
+##
+# @package  perceiver.reporting
+#
+# @brief    Python package/module with top-level API for reporting outcomes of a
+#           perceived scene. 
+#
+# See Perceiver/Reports doxygen page for more details.
+#
+#
+# @author   Patricio A. Vela,     pvela@gatech.edu 
+# @date     2024/02/24            [created]
+# 
 #!
 #!NOTE:
 #!  set indent to 2 spaces.

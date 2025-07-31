@@ -293,6 +293,74 @@ class Falling(Trigger):
     return isFalling
 
 
+#================================ NonNegative ================================
+#
+
+class NonNegative(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when the state is non-negative.
+
+  Typically the input signal will be an integer, but nothing prevents it from
+  being any other signal for which greater than or equal to 0 binary operation works.
+  """
+
+  #========================= NonNegative __init__ ========================
+  #
+  def __init__(self, theConfig = None):
+    """!
+    @brief  Constructor for onMatch trigger class.
+    """
+    if (theConfig is None):
+      theConfig = CfgTrigger()
+
+    super(NonNegative,self).__init__(theConfig)
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Report triggered when the passed signal is non-negative.
+
+    @param[in]  theSig      The passed signal.
+    """
+    return (theSig >= 0)
+
+
+#================================= IsNegative ================================
+#
+
+class IsNegative(Trigger):
+  """!
+  @ingroup  Reports
+  @brief    Class that triggers a report when the state is negative.
+
+  Typically the input signal will be an integer, but nothing prevents it from
+  being any other signal for which less than 0 binary operation works.
+  """
+
+  #========================= IsNegative __init__ =========================
+  #
+  def __init__(self, theConfig):
+    """!
+    @brief  Constructor for onMatch trigger class.
+    """
+    if (theConfig is None):
+      theConfig = CfgTrigger()
+
+    super(IsNegative,self).__init__(theConfig)
+
+  #==================================== test ===================================
+  #
+  def test(self, theSig):
+    """!
+    @brief  Report triggered when the passed signal is non-negative.
+
+    @param[in]  theSig      The passed signal.
+    """
+    return (theSig < 0)
+
+
 #=================================== onChange ==================================
 #
 
@@ -390,7 +458,7 @@ class onMatch(Trigger):
 
 
 
-#================== Non-Euqality Difference or Distance Checks =================
+#================== Non-Equality Difference or Distance Checks =================
 
 
 #================================== whenClose ==================================
@@ -470,7 +538,7 @@ class whenClose(Trigger):
 class whenFar(Trigger):
   """!
   @ingroup  Reports
-  @brief    Class that triggers a report when current state is far fromo target state.
+  @brief    Class that triggers a report when current state is far from target state.
 
   If the signal differense is more than some specified quantity then trigger a report.
   Use when the the equality binary operator does not work (is not defined) or has
@@ -548,7 +616,7 @@ class whenDiffers(Trigger):
   @ingroup  Reports
   @brief    Class that triggers a report when current state differs from previous state.
 
-  If the signal differense is greater than some specified quantity then trigger a report.
+  If the signal difference is greater than some specified quantity then trigger a report.
   Use when the the equality binary operator does not work (is not defined) or has
   non-robust behavior.
   """

@@ -40,9 +40,9 @@ A trigger determines when a particular state or signal should be reported.  In
 the python logging API, a trigger is similar to a filter and is tested before
 constructing the message or moving forward on state/signal reporting.  Usually
 in logging, some external process requests the log to happen, and the filter
-applies pre-established logic to determine if the logging should be permitted.  
-Here, there is a continuously submitted state/signal and the choice must be made as
-to whether the state should be reported or not.   
+applies pre-established logic to determine if the logging should be permitted.
+Here, there is a continuously submitted state/signal and the choice must be
+made as to whether the state should be reported or not.   
 
 An announcer generates the output that will be sent through the reporting channel.
 The most basic version should be plain text, but we can envision other versions
