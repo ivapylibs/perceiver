@@ -25,6 +25,7 @@
 
 from ivapy.Configuration import AlgConfig
 import csv
+import rospy
 
 #=================================== Channel ===================================
 #
@@ -223,6 +224,84 @@ class toCSV(Channel):
       self.writer.writerow(theRow)
 
     return True
+
+
+#==================================== toROSmsg ===================================
+#
+
+class CfgToROSmsg(CfgChannel):
+  """!
+  @ingroup  Reports
+  @brief    Configuration instance for a Channel.
+  """
+
+  #------------------------------ __init__ -----------------------------
+  #
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+    """!
+    @brief    Instantiate a channel build configuration.
+    """
+
+    if init_dict is None:
+      init_dict = CfgToROSmsg.get_default_settings()
+
+    super(CfgChannel,self).__init__(init_dict, key_list, new_allowed)
+
+
+  #------------------------ get_default_settings -----------------------
+  #
+  @staticmethod
+  def get_default_settings():
+    """!
+    @brief  Get default build configuration settings for Trigger.
+    """
+
+    default_settings = CfgChannel.get_default_settings()
+    default_settings.update(dict(topic = "", type = None, bufflen = 0))
+    return default_settings
+
+
+class toROSmsg(Channel):
+  """!
+  @ingroup  Reports
+  @brief    Pass along to a ROS topic. 
+
+  Saves the reports to a ROS message compatible with the message type.
+  This class will most likely be overloaded to permit customization of
+  the message type and announcement contents.
+  """
+
+  #============================= toROSmsg __init__ =============================
+  #
+  def __init__(self, theConfig = CfgToROSmsg()):
+    """!
+    @brief  Constructor for base trigger class.
+    """
+    self.config = theConfig
+
+    self.pub = rospy.Publisher(self.config.topic, self.config.type, self.config.bufflen)
+    #self.fid = open(self.config.filename, self.config.otype)
+    # @todo Deal with ros topic connection / open for publishing.
+    # Also will need the publisher, or is that internally handled here?
+
+  #==================================== send ===================================
+  #
+  def send(self, theAnnouncement):
+    # REPLACE: self.fid.write(theAnnouncement)
+    # PUBLISH THE TOPIC.
+    self.publish(theAnnouncement)
+    return True
+    # @todo see if fid.write returns success status?
+
+  #================================== __del__ ==================================
+  #
+  def __del__(self):
+    #!self.fid.close()
+    # @todo Probably nothing to do here.
+
+
+
+
 
 #================================== Assignment =================================
 #
