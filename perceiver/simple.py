@@ -27,6 +27,12 @@ from Lie.group.SE2.Homog import Homog
 from detector.Configuration import AlgConfig
 
 
+# Public API surfaces (interfaces + result types)
+from .interfaces import Detector, Trackpointer, Filter
+from .interfaces import Perceiver as IPerceiver  # alias to avoid name clash with the base class below
+from .types import Detections, Tracks, Estimates, PerceptionResult
+
+
 @dataclass
 class State:
   tMeas: any
@@ -462,3 +468,15 @@ class Perceiver(object):
 
 #
 #============================ simple ============================
+
+
+__all__ = [
+    # existing exports from simple.py …
+    'Perceiver',           # your existing base class in this file (keep as-is)
+
+    # interface exports (IPerceiver avoids name clash)
+    'Detector', 'Trackpointer', 'Filter', 'IPerceiver',
+
+    # result types
+    'Detections', 'Tracks', 'Estimates', 'PerceptionResult',
+]

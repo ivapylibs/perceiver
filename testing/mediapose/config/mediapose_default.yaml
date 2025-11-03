@@ -1,0 +1,20 @@
+perceiver: mediapose
+
+detector:
+  name: mediapipe_hands
+  params:
+    mask_mode: hand      # none | palm | hand
+    mirror: false
+    det_conf: 0.4
+    track_conf: 0.4
+    max_hands: 2
+
+trackpointer:
+  name: hand             # hand | palm | centroid
+  params: {}
+
+estimator:
+  filters:
+    - name: ema
+      params:
+        alpha: 0.6
