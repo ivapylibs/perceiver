@@ -1,16 +1,41 @@
 perceiver: mediapose
 
+# --- New: camera calibration (optional) ---
+camera:
+  # If these are null/missing, we fall back to approximate intrinsics from frame size.
+  intrinsics:
+    fx: null
+    fy: null
+    cx: null
+    cy: null
+  dist_coeffs: [0, 0, 0, 0, 0]
+
+# --- New: PnP settings ---
+pnp:
+  enabled: true
+  landmark_indices: [0, 5, 9, 13, 17]  # rigid palm anchors
+  units: cm
+  object_points:
+    - [0.0, 0.0, 0.0]   # 0: wrist
+    - [2.0, 3.0, 0.0]   # 5: index MCP
+    - [3.0, 4.0, 0.0]   # 9: middle MCP
+    - [4.0, 3.5, 0.0]   # 13: ring MCP
+    - [5.0, 3.0, 0.0]   # 17: pinky MCP
+  solver:
+    method: ITERATIVE
+    refine: true
+
 detector:
   name: mediapipe_hands
   params:
-    mask_mode: hand      # none | palm | hand
+    mask_mode: hand
     mirror: false
     det_conf: 0.4
     track_conf: 0.4
     max_hands: 2
 
 trackpointer:
-  name: hand             # hand | palm | centroid
+  name: hand
   params: {}
 
 estimator:
@@ -18,3 +43,9 @@ estimator:
     - name: ema
       params:
         alpha: 0.6
+
+# Stored today, but next we’ll wire it into api_adapter.py
+pick:
+  enabled: true
+  pinch_landmarks: [4, 8]
+  axis_pair: [0, 9]

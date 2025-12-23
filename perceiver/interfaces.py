@@ -26,7 +26,7 @@ class Trackpointer(ABC):
 
 
 class Filter(ABC):
-    """Optional smoothing/denoising over time-series outputs"""
+    """Optional post-processing on Tracks/Estimates (smoothing, denoising, adding derived quantities)."""
     @abstractmethod
     def apply(self, tracks_or_estimates: 'Tracks'| 'Estimates', timestamp: Optional[float] = None) -> 'Estimates':
         pass

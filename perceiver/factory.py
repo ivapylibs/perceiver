@@ -162,6 +162,7 @@ def build_mediapose_from_config(cfg: Dict[str, Any]) -> MediaPosePerceiverAPI:
     return MediaPosePerceiverAPI(
         tracker=tracker_name,
         ema_alpha=ema_alpha,
+        cfg = cfg,
         **detector_kwargs,
     )
 

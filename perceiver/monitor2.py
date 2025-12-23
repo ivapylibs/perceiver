@@ -50,7 +50,7 @@ import numpy as np
 from dataclasses import dataclass
 
 from detector.detector.Configuration import AlgConfig
-from detector.detector.Configuration import BuildConfig
+#from detector.detector.Configuration import BuildConfig
 import perceiver.perceiver as Perceiver
 from detector.detector.base import ActivityState
 
@@ -112,51 +112,37 @@ class CfgMonitor(AlgConfig):
     # @todo     What should this be?
 
 
+
 #=============================== BuildCfgMonitor ===============================
 #
-class BuildCfgMonitor(BuildConfig):
+def BuildCfgMonitor(init_dict=None, key_list=None, new_allowed=True):
   """!
   @ingroup  Perceiver
-  @brief    Build configuration instance for a monitor.  
+  @brief    Build configuration instance for a monitor.
 
-  Instantiating a monitor requires perceiver and activity recognition instances
-  (with some very specific exceptions).  These need to be defined to build
-  out a monitor. 
+  This is a lightweight replacement for the original BuildConfig-based
+  builder. It preserves the call style used across the codebase while
+  avoiding the BuildConfig dependency.
+
+  @param[in] init_dict    Optional dict of settings. If None, uses defaults.
+  @param[in] key_list     Unused (kept for signature compatibility).
+  @param[in] new_allowed  Unused (kept for signature compatibility).
+  @return                A dict with keys: perceiver, activity
   """
-  #
-  # @todo   Unlike Perceiver, setting as BuildConfig instance in Configuration
-  #         package space.  If implementation should change because a better
-  #         approach has been established, then change there.  At this level, the
-  #         implementation is abstracted.  Left as todo because of chained
-  #         dependence on the BuildCfgPerceiver for consistency of implementation.
-  #         When that todo goes, then so should this one.
-  #
+  if init_dict is None:
+    init_dict = BuildCfgMonitor.get_default_settings()
+  return init_dict
 
-  #------------------------------ __init__ -----------------------------
-  #
-  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+
+def _BuildCfgMonitor_get_default_settings():
     """!
-    @brief    Instantiate an (empty) monitor builder configuration.
+    @brief Default (empty) build configuration for monitor.
     """
-
-    if init_dict is None:
-      init_dict = BuildCfgPerceiver.get_default_settings()
-      # Default settings are empty.  
-
-    super(BuildCfgMonitor,self).__init__(init_dict, key_list, new_allowed)
+    return dict(perceiver=None, activity=None)
 
 
-  #------------------------ get_default_settings -----------------------
-  #
-  @staticmethod
-  def get_default_settings():
-    """!
-    @brief  Default (empty) build configuration for monitor.
-    """
-
-    default_settings = dict(perceiver = None, activity = None)
-    return default_settings
-
+# Attach method-like attribute for compatibility with existing call sites
+BuildCfgMonitor.get_default_settings = staticmethod(_BuildCfgMonitor_get_default_settings)
 
 
 #

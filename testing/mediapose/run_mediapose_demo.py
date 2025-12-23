@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 
 # Legacy perceiver (unchanged path)
-from perceiver.perceiver.mediapose_perceiver import MediaPosePerceiver
+from perceiver.perceiver.legacy.mediapose_perceiver import MediaPosePerceiver
 
 # New API perceiver factory
 from perceiver.perceiver.factory import load_config, build_mediapose_from_config
@@ -21,6 +21,7 @@ from perceiver.testing.mediapose.utils import (
     draw_centroid_overlay, # expects obj with .present and .centroid (normalized)
     write_jsonl,
 )
+
 
 
 # --------------------------- CLI ---------------------------
@@ -43,7 +44,7 @@ def parse_args():
                     help="What to visualize: 21×3 landmarks (hand), 6×3 palm, or 2D centroid.")
 
     # Perceiver selection + config
-    ap.add_argument("--perceiver", choices=["legacy", "api"], default="legacy",
+    ap.add_argument("--perceiver", choices=["legacy", "api"], default="api",
                     help="Use legacy demo perceiver or the new API-aligned perceiver.")
     ap.add_argument("--cfg", type=str, default=None,
                     help="Path to YAML config for API perceiver (overridden by CLI flags when present).")
@@ -149,8 +150,8 @@ def main():
             if args.ema_alpha is not None:
                 cfg["estimator"]["filters"] = [{"name": "ema", "params": {"alpha": float(args.ema_alpha)}}]
 
-            print("[EFFECTIVE] tracker=", cfg["perceiver"]["trackpointer"]["name"],
-                "mask_mode=", cfg["detector"]["params"].get("mask_mode"))
+            #print("[EFFECTIVE] tracker=", cfg["perceiver"]["trackpointer"]["name"],
+                #"mask_mode=", cfg["detector"]["params"].get("mask_mode"))
         else:
             # Minimal default config mirrors your YAML
             cfg = {
@@ -158,7 +159,7 @@ def main():
                 "detector": {
                     "name": "mediapipe_hands",
                     "params": {
-                        "mask_mode": "hand",
+                        "mask_mode": "none",
                         "mirror": bool(args.mirror_view),
                         "det_conf": 0.4,
                         "track_conf": 0.4,
@@ -191,16 +192,93 @@ def main():
                 result = perc_api.process(frame, timestamp=time.time())
                 tracks = result.tracks.items  # list of dicts
 
-                # TEMP DEBUG (remove later)
-                #if len(tracks):
-                    #keys0 = list(tracks[0].keys())
-                    #print(f"trk={len(tracks)} keys[0]={keys0}")
+                if tracks:
+                    print("TRACK KEYS SAMPLE:", list(tracks[0].keys()))
+
+                # --- New: visualize pick position and log distance from Tracks ---
+                if args.tracker == "hand":
+                    h_img, w_img = frame.shape[:2]
+
+                    for t in tracks:
+                        pick = t.get("pick", None)
+                        if pick is None:
+                            continue
+
+                        pos = np.asarray(pick.get("pos", None))
+                        if pos.size < 2:
+                            continue
+
+                        frame_name = pick.get("frame", "normalized")
+                        distance   = pick.get("distance", None)
+                        axis       = pick.get("axis", None)
+                        pinch_dist = pick.get("pinch_dist", None)
+                        pinch_ratio = pick.get("pinch_ratio", None)
+                        is_picking  = pick.get("is_picking", None)
+
+                        # ---- safe formatting helpers ----
+                        def _fmt(val):
+                            try:
+                                if val is None:
+                                    return "None"
+                                return f"{float(val):.3f}"
+                            except (TypeError, ValueError):
+                                return "None"
+
+                        dist_str  = _fmt(distance)
+                        pinch_str = _fmt(pinch_dist)
+                        ratio_str = _fmt(pinch_ratio)
+
+                        print(
+                            f"[Track {t.get('id')}] "
+                            f"frame={frame_name} "
+                            f"dist={dist_str} "
+                            f"pinch={pinch_str} "
+                            f"ratio={ratio_str} "
+                            f"is_picking={is_picking} "
+                            f"pos={pos} "
+                            f"axis={axis}"
+                        )
+
+                        # --- drawing: ALWAYS use normalized landmarks for 2D overlay ---
+                        lm = t.get("landmarks", None)
+                        if lm is None:
+                            continue
+
+                        L = np.asarray(lm, dtype=np.float32)
+                        if L.ndim != 2 or L.shape[0] <= 9:
+                            continue
+
+                        L_xy = L[:, :2]
+                        thumb_xy = L_xy[4]
+                        index_xy = L_xy[8]
+                        wrist_xy = L_xy[0]
+                        mid_xy   = L_xy[9]
+
+                        pinch_center = 0.5 * (thumb_xy + index_xy)
+                        u = int(pinch_center[0] * w_img)
+                        v = int(pinch_center[1] * h_img)
+
+                        cv2.circle(frame, (u, v), 6, (0, 255, 0), -1)
+
+                        axis_2d = mid_xy - wrist_xy
+                        axis_norm = np.linalg.norm(axis_2d)
+                        if axis_norm > 1e-6:
+                            axis_2d = axis_2d / axis_norm
+                            end_point = (
+                                int(u + 40 * axis_2d[0]),
+                                int(v + 40 * axis_2d[1]),
+                            )
+                            cv2.line(frame, (u, v), end_point, (0, 255, 0), 2)
+
+
+
 
                 # Optional: debug mask window (owned by detector)
                 if not args.no_view:
                     mask = getattr(perc_api.det, "_last_mask", None)  # detector is public on API class
                     if mask is not None:
-                        cv2.imshow("HAND MASK (debug)", mask)
+                        mask_vis = mask.astype(np.uint8) * 255
+                        cv2.imshow("HAND MASK (debug)", mask_vis)
 
                 preview = cv2.flip(frame, 1) if args.mirror_view else frame
 
@@ -254,7 +332,7 @@ def main():
                         "tracker": args.tracker,
                         "det_count": len(result.detections.items),
                         "trk_count": len(tracks),
-                        "est_ids": list(result.estimates.items.keys()),
+                        "est_ids": list(result.estimates.items.keys()) if result.estimates is not None else [],
                         "tracks": [
                             {
                                 "id": t.get("id"),
@@ -277,7 +355,8 @@ def main():
                 if not args.no_view:
                     mask = getattr(perc_legacy.det, "_last_mask", None)
                     if mask is not None:
-                        cv2.imshow("HAND MASK (debug)", mask)
+                        mask_vis = mask.astype(np.uint8) * 255
+                        cv2.imshow("HAND MASK (debug)", mask_vis)
 
                 preview = cv2.flip(frame, 1) if args.mirror_view else frame
 

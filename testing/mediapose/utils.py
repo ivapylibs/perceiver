@@ -129,3 +129,31 @@ def draw_centroid_overlay(frame_bgr, hand_like, color=(255,255,0), mirror=False)
         cv2.circle(frame_bgr, (cx, cy), 5, color, -1)
     return frame_bgr
 
+
+def open_capture(src):
+    """
+    Open a cv2.VideoCapture from either:
+      - int camera index (0, 1, 2, ...)
+      - str camera index ("0") or file path ("foo.mp4")
+    """
+    # Normalize input
+    if isinstance(src, int):
+        cam_id = src
+        cap = cv2.VideoCapture(cam_id)
+        if not cap.isOpened():
+            raise RuntimeError(f"Cannot open camera index: {cam_id}")
+        return cap
+
+    # If it's not int, treat it like string/path
+    s = str(src).strip()
+    if s.isdigit():
+        cam_id = int(s)
+        cap = cv2.VideoCapture(cam_id)
+    else:
+        cap = cv2.VideoCapture(s)
+
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open source: {src}")
+    return cap
+
+

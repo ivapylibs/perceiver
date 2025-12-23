@@ -16,6 +16,12 @@ class Tracks:
 
 @dataclass
 class Estimates:
+    # items maps track_id (str|int) -> arbitrary per-track estimate dict
+    # For hand tracking, this may contain:
+    # - 'landmarks_2d': np.ndarray of shape (N, 2)
+    # - 'landmarks_3d': np.ndarray of shape (N, 3)
+    # - 'mask': mask metadata
+    # - 'pick': hand pick/axis info (pick_3d, axis_3d, distance), etc.
     items: dict[str | int, dict[str, Any]]
     meta: dict[str, Any]
 

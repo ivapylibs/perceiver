@@ -11,6 +11,11 @@ from detector.detector.mediapipe_hands import MediaPipeHandsDetector
 from trackpointer.trackpointer.api_adapter import APITrackpointerAdapter
 from perceiver.perceiver.estimator import FilteringEstimator
 from perceiver.filters.ema_filter import EMAFilter
+from perceiver.filters.hand_pick_filter import HandPickFilter
+
+#from .hand_pick_estimator import HandPickEstimator
+# or, if this file is also under perceiver/perceiver:
+# from .hand_pick_estimator import HandPickEstimator
 
 
 class MediaPosePerceiverAPI(Perceiver):
@@ -26,8 +31,11 @@ class MediaPosePerceiverAPI(Perceiver):
         ema_alpha: Optional[float] = None,         # None = no smoothing
         mask_mode: str = "none",                   # {"none","palm","hand"}
         mirror: bool = False,
+        cfg : dict | None = None,
         **mp_kwargs: Any,                          # forwarded to MediaPipeHandsDetector
     ) -> None:
+        
+        self._state: Optional[PerceptionResult] = None
         # Detector owns masking + preprocessing
         self.det = MediaPipeHandsDetector(
             mask_mode=mask_mode,
@@ -36,22 +44,35 @@ class MediaPosePerceiverAPI(Perceiver):
         )
 
         # Trackpointer adapter exposes new API over legacy trackers
-        self.tpa = APITrackpointerAdapter(tracker_type=tracker)
+        self.tpa = APITrackpointerAdapter(tracker_type=tracker, cfg= cfg)
 
-        # Estimator chains Filters (EMA optional)
+       # Estimator chains Filters (EMA optional, plus HandPickEstimator)
         self.ema_alpha = ema_alpha
-        self.est = FilteringEstimator(
-            filters=[EMAFilter(alpha=ema_alpha)] if ema_alpha is not None else []
-        )
+
+        filters = []
+
+        filters.append(HandPickFilter(cfg=cfg))
+
+        if ema_alpha is not None:
+            filters.append(EMAFilter(alpha=ema_alpha))
+
+
+        self.est = FilteringEstimator(filters=filters)
 
         # Metadata
+        if ema_alpha is not None:
+            estimator_desc = "filtering(EMA+pick)"
+        else:
+            estimator_desc = "filtering(pick)"
+
         self._meta_static: Dict[str, Any] = {
             "tracker": tracker,
             "mask_mode": mask_mode,
             "mirror": mirror,
             "detector": "mediapipe_hands",
-            "estimator": "filtering(EMA)" if ema_alpha is not None else "filtering(none)",
+            "estimator": estimator_desc,
         }
+
 
     # --- Perceiver API ---------------------------------------------------
     def process(self, frame: Any, timestamp: Optional[float] = None) -> PerceptionResult:
@@ -59,9 +80,9 @@ class MediaPosePerceiverAPI(Perceiver):
         tracks: Tracks = self.tpa.update(detections, timestamp=timestamp)
 
         # DEBUG: show what keys reached the demo
-        if tracks.items:
-            print("TRK_CLASS:", type(self.tpa).__name__)
-            print("DICT_KEYS_0:", list(tracks.items[0].keys()))
+        #if tracks.items:
+            #print("TRK_CLASS:", type(self.tpa).__name__)
+            #print("DICT_KEYS_0:", list(tracks.items[0].keys()))
 
         estimates: Estimates = self.est.update(tracks, timestamp=timestamp)
 
@@ -71,12 +92,29 @@ class MediaPosePerceiverAPI(Perceiver):
             "num_detections": len(detections.items),
             "num_tracks": len(tracks.items),
         }
-        return PerceptionResult(
+        result = PerceptionResult(
             detections=detections,
             tracks=tracks,
             estimates=estimates,
             meta=meta,
         )
+
+        self._state = result
+        return result
+    
+    def emptyState(self) -> PerceptionResult:
+        return PerceptionResult(
+            detections=Detections(items=[], meta={"empty": True}),
+            tracks=Tracks(items=[], meta={"empty": True}),
+            estimates=Estimates(items={}, meta={"empty": True}),
+            meta={"empty": True},
+        )
+
+
+    def getState(self):
+        if self._state is None:
+            return self.emptyState()
+        return self._state
 
     def reset(self) -> None:
         # Clear detector’s masking cache if present
@@ -91,6 +129,7 @@ class MediaPosePerceiverAPI(Perceiver):
         self.tpa.reset()
         if hasattr(self.est, "reset"):
             self.est.reset()  # if you added a reset; otherwise Filters clear state individually
+        self._state = None
 
     def _handlike_to_dict(obj) -> dict:
         d = {}

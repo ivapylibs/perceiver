@@ -106,3 +106,10 @@ ENV/
 .run
 
 *.sw?
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+out/
+*.jsonl
+testing/mediapose/test_data/
