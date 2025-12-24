@@ -1,7 +1,8 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Any
 from enum import Enum
-
+from typing import Union
 @dataclass
 class Detections:
     items: list[dict[str, Any]]
@@ -22,7 +23,7 @@ class Estimates:
     # - 'landmarks_3d': np.ndarray of shape (N, 3)
     # - 'mask': mask metadata
     # - 'pick': hand pick/axis info (pick_3d, axis_3d, distance), etc.
-    items: dict[str | int, dict[str, Any]]
+    items: dict[Union[str, int], dict[str, Any]]
     meta: dict[str, Any]
 
 @dataclass

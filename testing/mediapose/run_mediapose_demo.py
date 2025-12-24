@@ -9,10 +9,10 @@ import numpy as np
 import cv2
 
 # Legacy perceiver (unchanged path)
-from perceiver.perceiver.legacy.mediapose_perceiver import MediaPosePerceiver
+from perceiver.legacy.mediapose_perceiver import MediaPosePerceiver
 
 # New API perceiver factory
-from perceiver.perceiver.factory import load_config, build_mediapose_from_config
+from perceiver.factory import load_config, build_mediapose_from_config
 
 # Draw + logging helpers you already have
 from perceiver.testing.mediapose.utils import (

@@ -7,8 +7,8 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from detector.detector.base import ActivityState  # <-- Monitor expects ActivityState style
-from perceiver.perceiver.types import PerceptionResult
+from detector.base import ActivityState  # <-- Monitor expects ActivityState style
+from perceiver.types import PerceptionResult
 
 
 class PickFSMState(str, Enum):

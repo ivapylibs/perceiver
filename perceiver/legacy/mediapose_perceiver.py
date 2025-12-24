@@ -1,11 +1,11 @@
 # perceiver/perceiver/mediapose_perceiver.py
 import numpy as np
 
-from detector.detector.mediapipe_hands import MediaPipeHandsDetector
-from trackpointer.trackpointer.hand_tracker import HandLandmarksTracker
-from trackpointer.trackpointer.palm_tracker import PalmTracker
-from trackpointer.trackpointer.centroid_tracker import CentroidTracker
-from perceiver.perceiver.filters import MultiFeatureEMA  # NEW
+from detector.mediapipe_hands import MediaPipeHandsDetector
+from trackpointer.hand_tracker import HandLandmarksTracker
+from trackpointer.palm_tracker import PalmTracker
+from trackpointer.centroid_tracker import CentroidTracker
+from perceiver.filters import MultiFeatureEMA  # NEW
 from typing import Optional
 
 _TRACKERS = {

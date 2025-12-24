@@ -10,12 +10,12 @@ from typing import Any, Dict, Optional, Tuple, List
 import cv2
 import numpy as np
 
-from perceiver.perceiver.factory import load_config, build_mediapose_from_config
-from perceiver.perceiver.monitor2 import Monitor, CfgMonitor
-from perceiver.perceiver.hand_pick_activity import HandPickActivity
+from perceiver.factory import load_config, build_mediapose_from_config
+from perceiver.monitor2 import Monitor, CfgMonitor
+from perceiver.hand_pick_activity import HandPickActivity
 
 # Visualization + capture helpers live here (per your note)
-from perceiver.testing.mediapose.utils import (
+from .utils import (
     open_capture,
     draw_hand_overlay,
     draw_palm_overlay,

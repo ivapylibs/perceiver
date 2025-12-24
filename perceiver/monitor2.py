@@ -49,10 +49,10 @@ import time
 import numpy as np
 from dataclasses import dataclass
 
-from detector.detector.Configuration import AlgConfig
-#from detector.detector.Configuration import BuildConfig
+from detector.Configuration import AlgConfig
+#from detector.Configuration import BuildConfig
 import perceiver.perceiver as Perceiver
-from detector.detector.base import ActivityState
+from detector.base import ActivityState
 
 # PERCEIVER DATACLASS: State
 # PERCEIVER DATACLASS: Info

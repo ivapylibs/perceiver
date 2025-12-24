@@ -20,13 +20,13 @@ from typing import List
 
 # Prefer the centroid-capable copies if you created them; otherwise fall back.
 try:
-    from detector.detector.legacy.mediapipe_hands_centroid import MediaPipeHandsDetector, HandOutput
+    from detector.legacy.mediapipe_hands_centroid import MediaPipeHandsDetector, HandOutput
 except ImportError:
     # fallback if you didn’t make the centroid copy
     from detector.mediapipe_hands import MediaPipeHandsDetector, HandOutput  # type: ignore
 
 try:
-    from trackpointer.trackpointer.legacy.ema_tracker_centroid import EMAHandTracker
+    from trackpointer.legacy.ema_tracker_centroid import EMAHandTracker
 except ImportError:
     from trackpointer.ema_tracker import EMAHandTracker  # type: ignore
 

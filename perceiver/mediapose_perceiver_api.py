@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Optional, Any, Dict
 
 # API contracts + shared types
-from perceiver.perceiver.interfaces import Perceiver
-from perceiver.perceiver.types import Detections, Tracks, Estimates, PerceptionResult
+from perceiver.interfaces import Perceiver
+from perceiver.types import Detections, Tracks, Estimates, PerceptionResult
 
 # Concrete components we already built
-from detector.detector.mediapipe_hands import MediaPipeHandsDetector
-from trackpointer.trackpointer.api_adapter import APITrackpointerAdapter
-from perceiver.perceiver.estimator import FilteringEstimator
+from detector.mediapipe_hands import MediaPipeHandsDetector
+from trackpointer.api_adapter import APITrackpointerAdapter
+from perceiver.estimator import FilteringEstimator
 from perceiver.filters.ema_filter import EMAFilter
 from perceiver.filters.hand_pick_filter import HandPickFilter
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import Optional, Any, Dict, Union
 
 # Interfaces & result types (lightweight; no heavy deps)
-from perceiver.perceiver.interfaces import Filter
-from perceiver.perceiver.types import Tracks, Estimates
+from perceiver.interfaces import Filter
+from perceiver.types import Tracks, Estimates
 
 
 Number = Union[int, float]

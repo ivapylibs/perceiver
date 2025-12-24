@@ -5,11 +5,11 @@ from typing import Optional, Any, Dict, Union
 
 import numpy as np
 
-from perceiver.perceiver.interfaces import Filter
-from perceiver.perceiver.types import Tracks, Estimates
+from perceiver.interfaces import Filter
+from perceiver.types import Tracks, Estimates
 
-from trackpointer.trackpointer.calibration import MediaPoseCalibration
-from trackpointer.trackpointer.hand_model import compute_pick_pose_camera
+from trackpointer.calibration import MediaPoseCalibration
+from trackpointer.hand_model import compute_pick_pose_camera
 
 
 TrackId = Union[int, str]

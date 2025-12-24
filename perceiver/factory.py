@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 import yaml
 
 # Our API-aligned perceiver
-from perceiver.perceiver.mediapose_perceiver_api import MediaPosePerceiverAPI
+from perceiver.mediapose_perceiver_api import MediaPosePerceiverAPI
 
 # Allowed tokens (keep in sync with detector + adapter)
 _ALLOWED_MASK_MODES = {"none", "palm", "hand"}
