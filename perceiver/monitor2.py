@@ -51,7 +51,7 @@ from dataclasses import dataclass
 
 from detector.Configuration import AlgConfig
 #from detector.Configuration import BuildConfig
-import perceiver.perceiver as Perceiver
+from perceiver import perceiver as Perceiver
 from detector.base import ActivityState
 
 # PERCEIVER DATACLASS: State

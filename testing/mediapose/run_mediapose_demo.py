@@ -15,7 +15,7 @@ from perceiver.legacy.mediapose_perceiver import MediaPosePerceiver
 from perceiver.factory import load_config, build_mediapose_from_config
 
 # Draw + logging helpers you already have
-from perceiver.testing.mediapose.utils import (
+from testing.mediapose.utils import (
     draw_hand_overlay,     # expects obj with .present and .landmarks (normalized)
     draw_palm_overlay,     # expects obj with .present and .palm (normalized)
     draw_centroid_overlay, # expects obj with .present and .centroid (normalized)
