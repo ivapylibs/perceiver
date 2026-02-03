@@ -10,6 +10,7 @@ from perceiver.mediapose_perceiver_api import MediaPosePerceiverAPI
 
 # Allowed tokens (keep in sync with detector + adapter)
 _ALLOWED_MASK_MODES = {"none", "palm", "hand"}
+_ALLOWED_DETECTOR_BACKENDS = {"solutions", "tasks"}
 _ALLOWED_TRACKERS   = {"hand", "palm", "centroid"}
 
 
@@ -36,6 +37,9 @@ def _validate_detector_section(det: Dict[str, Any]) -> Dict[str, Any]:
           det_conf: float
           track_conf: float
           max_hands: int
+          backend
+          model_path
+          running_mode
     """
     name = (det or {}).get("name", "")
     if name != "mediapipe_hands":
@@ -53,12 +57,29 @@ def _validate_detector_section(det: Dict[str, Any]) -> Dict[str, Any]:
     det_conf   = float(params.get("det_conf", 0.4))
     track_conf = float(params.get("track_conf", 0.4))
     max_hands  = int(params.get("max_hands", 2))
+    backend = str(params.get("backend", "solutions")).lower()
+
+    model_path = params.get("model_path", None)
+    running_mode = str(params.get("running_mode", "video")).lower()
+
 
     if mask_mode not in _ALLOWED_MASK_MODES:
         raise ValueError(
             f"detector.params.mask_mode='{mask_mode}' invalid. "
             f"Allowed: {sorted(_ALLOWED_MASK_MODES)}"
         )
+    
+    if (backend not in _ALLOWED_DETECTOR_BACKENDS):
+        print(backend in _ALLOWED_DETECTOR_BACKENDS)
+        raise ValueError(f"detector.params.backend='{backend}' invalid. "
+                         f"Allowed: {_ALLOWED_DETECTOR_BACKENDS}")
+    
+    if backend == "tasks":
+        if not isinstance(model_path, str) or not model_path.strip():
+            raise ValueError("detector.params.model_path required (non-empty) when backend=tasks.")
+        if running_mode not in {"video"}:
+            raise ValueError("detector.params.running_mode must be 'video' for now.")
+
 
     # Return kwargs exactly as MediaPipeHandsDetector expects
     return {
@@ -67,6 +88,9 @@ def _validate_detector_section(det: Dict[str, Any]) -> Dict[str, Any]:
         "det_conf":   det_conf,
         "track_conf": track_conf,
         "max_hands":  max_hands,
+        "backend": backend,
+        "model_path": model_path,
+        "running_mode": running_mode
     }
 
 
@@ -151,7 +175,7 @@ def build_mediapose_from_config(cfg: Dict[str, Any]) -> MediaPosePerceiverAPI:
     # ---- validate / normalize sections ----
     detector_kwargs = _validate_detector_section(det_cfg)   # -> kwargs for MediaPipeHandsDetector
     tracker_name    = _validate_trackpointer_section(tp_cfg)  # -> "hand" | "palm" | "centroid"
-    print("[FACTORY] perceiver=mediapose tracker=", tracker_name, "det.kw=", detector_kwargs.get("mask_mode"))
+    #print("[FACTORY] perceiver=mediapose tracker=", tracker_name, "det.kw=", detector_kwargs.get("mask_mode"))
 
 
     # ---- construct API-aligned perceiver ----

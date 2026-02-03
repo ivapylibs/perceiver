@@ -113,3 +113,7 @@ __pycache__/
 out/
 *.jsonl
 testing/mediapose/test_data/
+
+# MediaPipe Tasks models (local artifacts)
+testing/mediapose/models/
+

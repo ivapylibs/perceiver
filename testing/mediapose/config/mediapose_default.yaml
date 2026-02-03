@@ -28,7 +28,10 @@ pnp:
 detector:
   name: mediapipe_hands
   params:
-    mask_mode: hand
+    backend: Tasks          # NEW (default)
+    model_path: /Users/vikramdevaraju/ivapy-ws/perceiver/testing/mediapose/models/hand_landmarker.task   # NEW (Tasks only)
+    running_mode: video         # NEW (optional but good)
+    mask_mode: none
     mirror: false
     det_conf: 0.4
     track_conf: 0.4

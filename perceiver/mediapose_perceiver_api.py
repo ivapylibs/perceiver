@@ -29,8 +29,6 @@ class MediaPosePerceiverAPI(Perceiver):
         self,
         tracker: str = "hand",                     # {"hand","palm","centroid"}
         ema_alpha: Optional[float] = None,         # None = no smoothing
-        mask_mode: str = "none",                   # {"none","palm","hand"}
-        mirror: bool = False,
         cfg : dict | None = None,
         **mp_kwargs: Any,                          # forwarded to MediaPipeHandsDetector
     ) -> None:
@@ -38,11 +36,11 @@ class MediaPosePerceiverAPI(Perceiver):
         self._state: Optional[PerceptionResult] = None
         # Detector owns masking + preprocessing
         self.det = MediaPipeHandsDetector(
-            mask_mode=mask_mode,
-            mirror=mirror,
             **mp_kwargs,
         )
 
+        mask_mode = mp_kwargs.get("mask_mode", "none")
+        mirror = bool(mp_kwargs.get("mirror", False))
         # Trackpointer adapter exposes new API over legacy trackers
         self.tpa = APITrackpointerAdapter(tracker_type=tracker, cfg= cfg)
 
