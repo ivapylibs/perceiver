@@ -298,6 +298,7 @@ class toROSmsg(Channel):
   def __del__(self):
     #!self.fid.close()
     # @todo Probably nothing to do here.
+    pass
 
 
 
