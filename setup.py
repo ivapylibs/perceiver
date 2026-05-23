@@ -15,13 +15,5 @@ setup(
     install_requires=[
         "numpy",
         "matplotlib",
-        "Lie @ git+https://github.com/ivapylibs/Lie.git",
     ],
-    extras_require={
-        "testing": [
-            "improcessor @ git+https://github.com/ivapylibs/improcessor.git",
-            "detector @ git+https://github.com/ivapylibs/detector.git",
-            "trackpointer @ git+https://github.com/ivapylibs/trackpointer.git",
-        ]
-    },
 )
